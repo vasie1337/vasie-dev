@@ -1,8 +1,8 @@
 services:
-  portfolio:
+  vasie-dev:
     build:
       context: .
-    container_name: portfolio
+    container_name: vasie-dev
     restart: unless-stopped
     networks:
       - proxy
