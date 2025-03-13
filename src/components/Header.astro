@@ -4,14 +4,15 @@
 <header class="fixed top-0 left-0 w-full z-50 transition-all duration-300" id="main-header">
   <div class="container mx-auto px-8">
     <div class="flex justify-between items-center py-6">
-      <a href="#" class="text-white font-medium text-xl">
+      <a href="/" class="text-white font-light text-xl">
         <span class="text-white">VASIE</span>
       </a>
       
       <nav class="hidden md:flex space-x-10">
-        <a href="#hero" class="nav-link">Home</a>
-        <a href="#projects" class="nav-link">Work</a>
-        <a href="#about" class="nav-link">About</a>
+        <a href="/#hero" class="nav-link">Home</a>
+        <a href="/#skills" class="nav-link">Skills</a>
+        <a href="/#projects" class="nav-link">Work</a>
+        <a href="/#contact" class="nav-link">Contact</a>
       </nav>
       
       <div class="md:hidden">
@@ -25,12 +26,13 @@
   </div>
   
   <!-- Mobile menu -->
-  <div id="mobile-menu" class="md:hidden hidden bg-[#0a0a0a] py-6">
+  <div id="mobile-menu" class="md:hidden hidden bg-[#0a0a0a] py-6 border-t border-white/5">
     <div class="container mx-auto px-8">
       <nav class="flex flex-col space-y-6">
-        <a href="#hero" class="mobile-nav-link">Home</a>
-        <a href="#projects" class="mobile-nav-link">Work</a>
-        <a href="#about" class="mobile-nav-link">About</a>
+        <a href="/#hero" class="mobile-nav-link">Home</a>
+        <a href="/#skills" class="mobile-nav-link">Skills</a>
+        <a href="/#projects" class="mobile-nav-link">Work</a>
+        <a href="/#contact" class="mobile-nav-link">Contact</a>
       </nav>
     </div>
   </div>
@@ -40,6 +42,7 @@
   #main-header {
     backdrop-filter: blur(10px);
     background-color: rgba(5, 5, 5, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
   
   #main-header.scrolled {
@@ -47,15 +50,35 @@
   }
   
   .nav-link {
-    @apply text-white/80 hover:text-white transition-colors duration-200 text-sm tracking-wider;
+    @apply text-white/60 hover:text-white transition-colors duration-300 text-sm tracking-wider font-light relative;
+    padding-bottom: 4px;
+  }
+  
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.8);
+    transition: width 0.3s ease;
+  }
+  
+  .nav-link:hover::after {
+    width: 100%;
   }
   
   .nav-link.active {
     @apply text-white;
   }
   
+  .nav-link.active::after {
+    width: 100%;
+  }
+  
   .mobile-nav-link {
-    @apply text-white/80 hover:text-white transition-colors duration-200 text-lg;
+    @apply text-white/60 hover:text-white transition-colors duration-300 text-lg font-light;
   }
   
   .mobile-nav-link.active {
@@ -109,7 +132,7 @@
     navLinks.forEach(link => {
       link.classList.remove('active');
       const href = link.getAttribute('href');
-      if (href === `#${currentSection}`) {
+      if (href && href.includes(`#${currentSection}`)) {
         link.classList.add('active');
       }
     });
