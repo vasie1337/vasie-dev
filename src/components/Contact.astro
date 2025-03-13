@@ -14,7 +14,7 @@
       </p>
       
       <div class="contact-box">
-        <div class="flex flex-wrap gap-6 justify-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <a href="https://github.com/Vasie1337" target="_blank" class="contact-item group">
             <div class="icon-container">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -64,11 +64,11 @@
   
   .contact-item {
     @apply flex items-center hover:opacity-80 transition-all duration-300;
-    min-width: 220px;
+    width: 100%;
   }
   
   .icon-container {
-    @apply bg-white/5 text-white/70 p-3 rounded-sm mr-4;
+    @apply bg-white/5 text-white/70 p-3 rounded-sm mr-4 flex-shrink-0;
     width: 40px;
     height: 40px;
     display: flex;
