@@ -9,10 +9,10 @@
       </a>
       
       <nav class="hidden md:flex space-x-10">
-        <a href="/#hero" class="nav-link">Home</a>
-        <a href="/#skills" class="nav-link">Skills</a>
-        <a href="/#projects" class="nav-link">Work</a>
-        <a href="/#contact" class="nav-link">Contact</a>
+        <a href="#hero" class="nav-link">Home</a>
+        <a href="#skills" class="nav-link">Skills</a>
+        <a href="#projects" class="nav-link">Work</a>
+        <a href="#contact" class="nav-link">Contact</a>
       </nav>
       
       <div class="md:hidden">
@@ -29,10 +29,10 @@
   <div id="mobile-menu" class="md:hidden hidden bg-[#0a0a0a] py-6 border-t border-white/5">
     <div class="container mx-auto px-8">
       <nav class="flex flex-col space-y-6">
-        <a href="/#hero" class="mobile-nav-link">Home</a>
-        <a href="/#skills" class="mobile-nav-link">Skills</a>
-        <a href="/#projects" class="mobile-nav-link">Work</a>
-        <a href="/#contact" class="mobile-nav-link">Contact</a>
+        <a href="#hero" class="mobile-nav-link">Home</a>
+        <a href="#skills" class="mobile-nav-link">Skills</a>
+        <a href="#projects" class="mobile-nav-link">Work</a>
+        <a href="#contact" class="mobile-nav-link">Contact</a>
       </nav>
     </div>
   </div>
@@ -90,7 +90,7 @@
   // Handle scroll effect for header
   const header = document.getElementById('main-header');
   const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
-  const sections = document.querySelectorAll('section');
+  const sections = document.querySelectorAll('section[id]');
   const mobileMenuToggle = document.getElementById('menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
   
@@ -121,8 +121,8 @@
     let currentSection = '';
     
     sections.forEach(section => {
-      const sectionTop = section.offsetTop - 100;
-      const sectionHeight = section.offsetHeight;
+      const sectionTop = (section as HTMLElement).offsetTop - 100;
+      const sectionHeight = (section as HTMLElement).offsetHeight;
       
       if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
         currentSection = section.getAttribute('id') || '';
@@ -139,17 +139,19 @@
   });
   
   // Smooth scrolling for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', (e) => {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor: Element) => {
+    anchor.addEventListener('click', function(this: HTMLAnchorElement, e: Event) {
       e.preventDefault();
       
-      const href = anchor.getAttribute('href') || '';
-      if (href === '#') return;
+      const href = this.getAttribute('href');
+      if (!href || href === '#') return;
       
-      const targetElement = document.querySelector(href);
+      const targetId = href.replace(/^\/+/, '');
+      const targetElement = document.getElementById(targetId.replace('#', ''));
+      
       if (targetElement) {
         window.scrollTo({
-          top: (targetElement as HTMLElement).offsetTop - 80,
+          top: targetElement.offsetTop - 80,
           behavior: 'smooth'
         });
       }
