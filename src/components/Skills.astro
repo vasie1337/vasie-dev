@@ -1,0 +1,127 @@
+---
+---
+
+<section id="skills" class="py-32 relative">
+  <div class="container mx-auto px-8 relative z-10">
+    <div class="mb-16">
+      <h2 class="text-4xl md:text-5xl font-light text-white">Technical Skills</h2>
+      <div class="h-px w-16 bg-white/30 mt-4"></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">C/C++ Programming</h3>
+          <p class="text-gray-300 mb-6">Expert-level systems programming with deep understanding of memory management, performance optimization, and low-level architecture.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">void* malloc_optimized(size_t size) {"{"}
+  /* Memory alignment optimization */
+  return (void*)((uintptr_t)malloc(size + 15) & ~15);
+{"}"}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">Assembly Language</h3>
+          <p class="text-gray-300 mb-6">Proficient in x86, x86-64, and ARM assembly. Creating high-performance routines and understanding processor architecture.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">; Fast integer square root
+xor ebx, ebx
+mov ecx, 0x40000000
+L: cmp eax, ecx
+   jl skip
+   sub eax, ecx
+   lea ebx, [ebx + ebx + 1]
+skip: shr ecx, 2
+     shr ebx, 1
+     jnz L</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">Reverse Engineering</h3>
+          <p class="text-gray-300 mb-6">Analyzing binary code, debugging complex systems, and uncovering vulnerabilities in proprietary software.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">// Disassembled function analysis
+0x400720: push rbp
+0x400721: mov rbp, rsp
+0x400724: sub rsp, 0x20
+0x400728: mov DWORD PTR [rbp-0x14], edi
+0x40072b: mov QWORD PTR [rbp-0x20], rsi</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">Backend Systems</h3>
+          <p class="text-gray-300 mb-6">Designing and implementing high-performance, scalable server-side applications and infrastructure.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">// Asynchronous socket management
+epoll_event events[MAX_EVENTS];
+for (;;) {"{"}
+  int n = epoll_wait(epfd, events, MAX_EVENTS, -1);
+  for (int i = 0; i {"<"} n; i++) {"{"}
+    process_event(events[i]);
+  {"}"}
+{"}"}</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">Authentication & Security</h3>
+          <p class="text-gray-300 mb-6">Implementing secure authentication systems and cryptographic protocols to protect sensitive data.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">// Secure password hashing
+uint8_t salt[16], hash[32];
+CSPRNG_bytes(salt, sizeof(salt));
+argon2id_hash_password(
+  password, password_len,
+  salt, sizeof(salt),
+  hash, sizeof(hash)
+);</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-content">
+          <h3 class="text-2xl font-light text-white mb-3">System Optimization</h3>
+          <p class="text-gray-300 mb-6">Tuning and optimizing performance-critical systems for maximum efficiency and resource utilization.</p>
+          <div class="code-snippet">
+            <pre class="text-xs text-white/50 font-mono">// Cache-aware data structure
+struct alignas(64) CacheAligned {"{"}
+  std::atomic{"<"}int{">"} counter{"{"}0{"}"};
+  // Prevent false sharing
+  char padding[64 - sizeof(std::atomic{"<"}int{">"})];</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .skill-card {
+    @apply bg-[#0a0a0a] border border-white/5 p-8 transition-all duration-300 hover:border-white/20;
+  }
+  
+  .skill-content {
+    @apply flex flex-col h-full;
+  }
+  
+  .code-snippet {
+    @apply bg-black/30 rounded p-4 mt-auto;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .code-snippet pre {
+    @apply m-0 overflow-x-auto;
+  }
+</style>
