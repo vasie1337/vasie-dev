@@ -1,0 +1,12 @@
+services:
+  portfolio:
+    build:
+      context: .
+    container_name: portfolio
+    restart: unless-stopped
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
