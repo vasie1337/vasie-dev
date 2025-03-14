@@ -19,18 +19,14 @@
     <div class="max-w-3xl">
       <div class="overflow-hidden">
         <h1 class="text-5xl md:text-7xl font-light mt-2 mb-6 text-white leading-tight relative animate-fade-in-up">
-          <span class="scramble-text">
-            {"Software Engineer".split('').map((char, index) => (
-              char === ' ' 
-                ? <span class="scramble-space" data-index={index}>&nbsp;</span>
-                : <span class="scramble-char" data-index={index} data-original={char}>{char}</span>
-            ))}
-          </span>
+          Software Engineer
           <span class="absolute -left-4 top-1/2 w-2 h-10 bg-white/40 -translate-y-1/2 animate-pulse-slow"></span>
         </h1>
+
+        <p class="text-xl md:text-2xl text-gray-300 mb-12 font-light animate-fade-in" style="animation-delay: 200ms;">
+          A software engineer passionate about low-level software and performance optimization 
+        </p>
       </div>
-      <p class="text-xl md:text-2xl text-gray-300 mb-12 font-light animate-fade-in" style="animation-delay: 200ms;">
-      </p>
       <div class="flex flex-wrap gap-6 animate-fade-in" style="animation-delay: 400ms;">
         <a href="/#projects" class="btn-primary group relative overflow-hidden">
           <span class="relative z-10">View Projects</span>
@@ -117,66 +113,4 @@
   .animate-bounce-subtle {
     animation: bounce-subtle 2s ease-in-out infinite;
   }
-  
-  /* Scramble text effect */
-  .scramble-text {
-    display: inline-flex;
-    flex-wrap: wrap;
-  }
-  
-  .scramble-char {
-    position: relative;
-    display: inline-block;
-    transition: all 0.05s ease;
-  }
-  
-  .scramble-char:hover {
-    animation: scramble-pulse 0.2s ease-in-out infinite;
-  }
-  
-  .scramble-space {
-    display: inline-block;
-    width: 0.5em;
-  }
 </style>
-
-<script>
-  // Character randomization
-  document.addEventListener('DOMContentLoaded', () => {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}[]|;:,.<>?";
-    const scrambleChars = document.querySelectorAll('.scramble-char');
-    
-    scrambleChars.forEach((char) => {
-      const originalChar = char.getAttribute('data-original') || '';
-      
-      // Randomize characters on hover
-      char.addEventListener('mouseover', () => {
-        if (!(char instanceof HTMLElement)) return;
-        
-        // Create and store interval ID
-        const intervalId = setInterval(() => {
-          const randomChar = chars.charAt(Math.floor(Math.random() * chars.length));
-          char.textContent = randomChar;
-        }, 50); // Change character every 50ms
-        
-        // Store the interval ID on the element
-        char.dataset.intervalId = intervalId.toString();
-      });
-      
-      // Reset to original character on mouseout
-      char.addEventListener('mouseout', () => {
-        if (!(char instanceof HTMLElement)) return;
-        
-        // Clear the interval
-        if (char.dataset.intervalId) {
-          clearInterval(parseInt(char.dataset.intervalId));
-        }
-        
-        // Reset to original character
-        setTimeout(() => {
-          char.textContent = originalChar;
-        }, 100);
-      });
-    });
-  });
-</script>
