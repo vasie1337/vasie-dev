@@ -1,59 +1,98 @@
 ---
 ---
 
-<section id="projects" class="py-32 relative">
+<section id="projects" class="py-32 relative overflow-hidden">
+  <!-- Background elements for visual interest -->
+  <div class="absolute inset-0 opacity-[0.04] bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.15),transparent_70%)]"></div>
+  <div class="absolute right-0 top-[15%] w-[40%] h-[40%] opacity-[0.025] bg-[repeating-linear-gradient(45deg,rgba(255,255,255,0.1),rgba(255,255,255,0.1)_1px,transparent_1px,transparent_30px)]"></div>
+  
   <div class="container mx-auto px-8 relative z-10">
-    <div class="mb-16">
-      <h2 class="text-4xl md:text-5xl font-light text-white">Projects</h2>
-      <div class="h-px w-16 bg-white/30 mt-4"></div>
+    <div class="mb-16 overflow-hidden">
+      <h2 class="text-4xl md:text-5xl font-light text-white relative inline-block">
+        Projects
+        <span class="absolute -bottom-3 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></span>
+      </h2>
+      <div class="h-px w-16 bg-white/30 mt-8 opacity-0 animate-fade-in" style="animation-delay: 100ms;"></div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div class="project-card">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <!-- Project 1 -->
+      <div class="project-card group">
         <div class="project-content">
-          <h3 class="text-2xl font-light text-white mb-3">kernel-anticheat</h3>
-          <p class="text-gray-300 mb-6">A kernel-level anticheat solution that prevents unauthorized access to game memory</p>
+          <div class="project-header mb-4">
+            <h3 class="text-2xl font-light text-white mb-3 group-hover:translate-x-1 transition-transform duration-300">kernel-anticheat</h3>
+          </div>
+          <p class="text-gray-300 mb-6 group-hover:text-gray-200 transition-colors duration-300">A kernel-level anticheat solution that prevents unauthorized access to game memory</p>
           <div class="flex flex-wrap gap-3 mb-6">
             <span class="tech-tag">C++</span>
             <span class="tech-tag">Windows</span>
           </div>
-          <a href="https://github.com/Vasie1337/kernel-anticheat" class="text-white hover:text-white/80 underline underline-offset-4 transition-colors duration-200">View Project →</a>
+          <a href="https://github.com/Vasie1337/kernel-anticheat" class="project-link">
+            View Project
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7l5 5-5 5M5 12h13" />
+            </svg>
+          </a>
         </div>
       </div>
 
-      <div class="project-card">
+      <!-- Project 2 -->
+      <div class="project-card group">
         <div class="project-content">
-          <h3 class="text-2xl font-light text-white mb-3">sharedsection-driver</h3>
-          <p class="text-gray-300 mb-6">A driver that implements a shared section to communicate between kernel and a user-mode process</p>
+          <div class="project-header mb-4">
+            <h3 class="text-2xl font-light text-white mb-3 group-hover:translate-x-1 transition-transform duration-300">sharedsection-driver</h3>
+          </div>
+          <p class="text-gray-300 mb-6 group-hover:text-gray-200 transition-colors duration-300">A driver that implements a shared section to communicate between kernel and a user-mode process</p>
           <div class="flex flex-wrap gap-3 mb-6">
             <span class="tech-tag">C++</span>
             <span class="tech-tag">Windows</span>
           </div>
-          <a href="https://github.com/Vasie1337/sharedsection-driver" class="text-white hover:text-white/80 underline underline-offset-4 transition-colors duration-200">View Project →</a>
+          <a href="https://github.com/Vasie1337/sharedsection-driver" class="project-link">
+            View Project
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7l5 5-5 5M5 12h13" />
+            </svg>
+          </a>
         </div>
       </div>
 
-      <div class="project-card">
+      <!-- Project 3 -->
+      <div class="project-card group">
         <div class="project-content">
-          <h3 class="text-2xl font-light text-white mb-3">weather-api</h3>
-          <p class="text-gray-300 mb-6">A Next.js app that displays weather data from WeatherAPI</p>
+          <div class="project-header mb-4">
+            <h3 class="text-2xl font-light text-white mb-3 group-hover:translate-x-1 transition-transform duration-300">weather-api</h3>
+          </div>
+          <p class="text-gray-300 mb-6 group-hover:text-gray-200 transition-colors duration-300">A Next.js app that displays weather data from WeatherAPI</p>
           <div class="flex flex-wrap gap-3 mb-6">
             <span class="tech-tag">Next.js</span>
             <span class="tech-tag">Docker</span>
           </div>
-          <a href="https://github.com/Vasie1337/weather-api" class="text-white hover:text-white/80 underline underline-offset-4 transition-colors duration-200">View Project →</a>
+          <a href="https://github.com/Vasie1337/weather-api" class="project-link">
+            View Project
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7l5 5-5 5M5 12h13" />
+            </svg>
+          </a>
         </div>
       </div>
 
-      <div class="project-card">
+      <!-- Project 4 -->
+      <div class="project-card group">
         <div class="project-content">
-          <h3 class="text-2xl font-light text-white mb-3">vasie-dev</h3>
-          <p class="text-gray-300 mb-6">A personal portfolio website built with Astro</p>
+          <div class="project-header mb-4">
+            <h3 class="text-2xl font-light text-white mb-3 group-hover:translate-x-1 transition-transform duration-300">vasie-dev</h3>
+          </div>
+          <p class="text-gray-300 mb-6 group-hover:text-gray-200 transition-colors duration-300">A personal portfolio website built with Astro</p>
           <div class="flex flex-wrap gap-3 mb-6">
             <span class="tech-tag">Astro</span>
             <span class="tech-tag">Docker</span>
           </div>
-          <a href="https://github.com/Vasie1337/vasie-dev" class="text-white hover:text-white/80 underline underline-offset-4 transition-colors duration-200">View Project →</a>
+          <a href="https://github.com/Vasie1337/vasie-dev" class="project-link">
+            View Project
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7l5 5-5 5M5 12h13" />
+            </svg>
+          </a>
         </div>
       </div>
     </div>
@@ -62,10 +101,62 @@
 
 <style>
   .project-card {
-    @apply bg-[#0a0a0a] border border-white/5 p-8 transition-all duration-300 hover:border-white/20;
+    @apply bg-[#0a0a0a] border border-white/5 p-8 transition-all duration-500 hover:border-white/20 relative;
+    transform-style: preserve-3d;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .project-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .project-card:hover::before {
+    opacity: 1;
   }
   
   .tech-tag {
-    @apply bg-white/10 text-white/70 px-3 py-1 text-sm;
+    @apply bg-white/10 text-white/70 px-3.5 py-1.5 text-sm border border-white/5 backdrop-blur-sm transition-colors duration-300;
+  }
+  
+  .project-card:hover .tech-tag {
+    @apply text-white/80 bg-white/10;
+  }
+  
+  .project-link {
+    @apply text-white/80 hover:text-white flex items-center transition-colors duration-300 relative;
+    width: fit-content;
+  }
+  
+  .project-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    transform: scaleX(0.3);
+    opacity: 0.5;
+    transform-origin: left;
+    transition: all 0.3s ease;
+  }
+  
+  .project-link:hover::after {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  
+  .project-icon {
+    transform: translateZ(20px);
+  }
+  
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
