@@ -1,13 +1,13 @@
 ---
 ---
 
-<section id="hero" class="min-h-screen flex flex-col justify-center relative overflow-hidden py-32 px-8">
+<section id="hero" class="min-h-screen flex flex-col justify-center relative overflow-hidden py-32">
   <div class="absolute inset-0 bg-[#0a0a0a]/50"></div>
-  <div class="container mx-auto relative z-10">
-    <div class="max-w-3xl border border-white/5 p-10 backdrop-blur-sm bg-[#0a0a0a]/50 hover:border-white/20 transition-all duration-500">
+  <div class="section-container relative z-10">
+    <div class="hero-content max-w-3xl backdrop-blur-sm bg-[#0a0a0a]/50 border border-white/5 p-10 hover:border-white/20 transition-all duration-500">
       <div class="mb-1 text-white/40 text-lg font-light tracking-wider animate-fade-in">VASIE</div>
       
-      <h1 class="text-5xl md:text-7xl font-light mb-6 text-white leading-tight animate-fade-in-up">
+      <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight animate-fade-in-up">
         Software Engineer
         <span class="inline-block relative overflow-hidden">
           <span class="absolute bottom-0 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
@@ -23,7 +23,7 @@
           <span class="relative z-10">View Projects</span>
           <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
         </a>
-        <a href="https://github.com/Vasie1337" target="_blank" class="btn-secondary flex items-center group border-white/20 hover:border-white/40">
+        <a href="https://github.com/Vasie1337" target="_blank" class="btn-secondary flex items-center group">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-[360deg]" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
           </svg>
@@ -33,7 +33,7 @@
     </div>
   </div>
   <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-    <a href="/#expertise" class="text-white/50 hover:text-white transition-colors duration-300 animate-bounce-subtle">
+    <a href="/#expertise" class="text-white/40 hover:text-white transition-colors duration-300 animate-bounce-subtle">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
       </svg>
@@ -42,58 +42,22 @@
 </section>
 
 <style>
-  @keyframes float-slow {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    50% { transform: translateY(-20px) translateX(10px); }
+  .hero-content {
+    position: relative;
+    box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3);
+    transform: translateZ(0);
   }
   
-  @keyframes float-medium {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    50% { transform: translateY(15px) translateX(-15px); }
+  .hero-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
   }
   
-  @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
-  }
-  
-  @keyframes width-expand {
-    0% { transform: scaleX(0); transform-origin: left; }
-    100% { transform: scaleX(1); transform-origin: left; }
-  }
-  
-  .animate-float-slow {
-    animation: float-slow 10s ease-in-out infinite;
-  }
-  
-  .animate-float-medium {
-    animation: float-medium 8s ease-in-out infinite;
-  }
-  
-  .animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out forwards;
-  }
-  
-  .animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
-  }
-  
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
-  }
-  
-  .animate-width-expand {
-    animation: width-expand 1.5s ease-out forwards;
-    animation-delay: 0.8s;
+  .hero-content:hover::before {
+    opacity: 1;
   }
 </style>

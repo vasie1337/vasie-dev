@@ -8,8 +8,8 @@
   
   <div class="container mx-auto relative z-10">
     <div class="mb-16">
-      <h2 class="text-4xl md:text-5xl font-light text-white">Projects</h2>
-      <div class="h-px w-16 bg-white/30 mt-4"></div>
+      <h2 class="section-title">Projects</h2>
+      <div class="section-title-line"></div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -115,7 +115,7 @@
   .project-card:hover::before {
     opacity: 1;
   }
-  
+
   .tech-tag {
     @apply bg-white/5 text-white/60 px-3.5 py-1.5 text-sm border border-white/5 transition-colors duration-300;
   }
@@ -146,14 +146,5 @@
   .project-link:hover::after {
     transform: scaleX(1);
     opacity: 1;
-  }
-  
-  .project-icon {
-    transform: translateZ(20px);
-  }
-  
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
   }
 </style>
