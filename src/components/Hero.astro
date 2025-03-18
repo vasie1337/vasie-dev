@@ -3,23 +3,32 @@
 
 <section id="hero" class="min-h-screen flex flex-col justify-center relative overflow-hidden py-32">
   <div class="absolute inset-0 bg-[#0a0a0a]/50"></div>
+  
+  <!-- Subtle animated background elements -->
+  <div class="absolute left-[10%] top-[20%] w-[300px] h-[300px] opacity-[0.03] animate-float-slow">
+    <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]"></div>
+  </div>
+  <div class="absolute right-[10%] bottom-[20%] w-[250px] h-[250px] opacity-[0.02] animate-float-medium">
+    <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]"></div>
+  </div>
+  
   <div class="container mx-auto px-8 relative z-10">
     <div class="flex">
-      <div class="hero-content max-w-3xl backdrop-blur-sm bg-[#0a0a0a]/50 border border-white/5 p-10 hover:border-white/20 transition-all duration-500 ml-0 md:ml-12">
-        <div class="mb-1 text-white/40 text-lg font-light tracking-wider animate-fade-in">VASIE</div>
+      <div class="hero-content max-w-3xl glass-card border border-white/5 p-10 hover:border-white/20 transition-all duration-500 ml-0 md:ml-12 reveal">
+        <div class="mb-1 text-white/40 text-lg font-light tracking-wider">VASIE</div>
         
-        <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight animate-fade-in-up">
+        <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight">
           Software Engineer
           <span class="inline-block relative overflow-hidden">
             <span class="absolute bottom-0 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
           </span>
         </h1>
 
-        <p class="text-xl md:text-2xl text-white/80 mb-12 font-light animate-fade-in" style="animation-delay: 200ms;">
+        <p class="text-xl md:text-2xl text-white/80 mb-12 font-light" style="animation-delay: 200ms;">
           A software engineer passionate about low-level software, <span class="text-white">kernel development</span>, and performance optimization
         </p>
         
-        <div class="flex flex-wrap gap-6 animate-fade-in" style="animation-delay: 400ms;">
+        <div class="flex flex-wrap gap-6" style="animation-delay: 400ms;">
           <a href="/#projects" class="btn-primary group relative overflow-hidden">
             <span class="relative z-10">View Projects</span>
             <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
@@ -43,6 +52,29 @@
   </div>
 </section>
 
+<script>
+  // Reveal elements when they come into view
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+  
+  // Observe all elements with reveal class
+  document.querySelectorAll('.reveal').forEach(element => {
+    observer.observe(element);
+  });
+</script>
+
 <style>
   .hero-content {
     position: relative;
@@ -61,5 +93,25 @@
   
   .hero-content:hover::before {
     opacity: 1;
+  }
+  
+  /* Custom animation classes */
+  .animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+  }
+  
+  .animate-width-expand {
+    animation: width-expand 1.5s ease-out forwards;
+    animation-delay: 0.8s;
+  }
+  
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+  
+  @keyframes width-expand {
+    0% { transform: scaleX(0); transform-origin: left; }
+    100% { transform: scaleX(1); transform-origin: left; }
   }
 </style>

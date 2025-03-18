@@ -1,175 +1,150 @@
 ---
 ---
 
-<header class="fixed top-0 left-0 w-full z-50 transition-all duration-300" id="main-header">
-  <div class="container mx-auto px-8">
-    <div class="flex justify-between items-center py-6">
-      <a href="/" class="text-white font-light text-xl group">
-        <span class="text-white relative inline-block overflow-hidden">
-          <span class="relative z-10 transition-transform duration-500 group-hover:translate-y-[-2px]">VASIE</span>
-          <span class="absolute bottom-0 left-0 w-full h-[1px] bg-white/30 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
-        </span>
-      </a>
-      
-      <nav class="hidden md:flex space-x-10">
-        <a href="#hero" class="nav-link">Home</a>
-        <a href="#expertise" class="nav-link">Expertise</a>
-        <a href="#projects" class="nav-link">Projects</a>
-        <a href="#about" class="nav-link">About</a>
-      </nav>
-      
-      <div class="md:hidden">
-        <button type="button" id="menu-toggle" class="text-white focus:outline-none">
+<header class="fixed top-0 left-0 w-full z-50 transition-all duration-500" id="header">
+  <div class="py-6 px-8">
+    <div class="container mx-auto">
+      <nav class="flex items-center justify-between">
+        <a href="/" class="text-xl font-light">
+          <span class="text-white/80 hover:text-white transition-colors duration-300">VASIE</span>
+        </a>
+        
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="/#" class="nav-link">Home</a>
+          <a href="/#about" class="nav-link">About</a>
+          <a href="/#expertise" class="nav-link">Expertise</a>
+          <a href="/#projects" class="nav-link">Projects</a>
+        </div>
+        
+        <button id="mobile-menu-btn" class="md:hidden text-white/80 hover:text-white transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-      </div>
+      </nav>
     </div>
   </div>
   
-  <!-- Mobile menu -->
-  <div id="mobile-menu" class="md:hidden hidden bg-[#0a0a0a]/95 backdrop-blur-md py-6 border-t border-white/5">
-    <div class="container mx-auto px-8">
-      <nav class="flex flex-col space-y-6">
-        <a href="#hero" class="mobile-nav-link">Home</a>
-        <a href="#expertise" class="mobile-nav-link">Expertise</a>
-        <a href="#projects" class="mobile-nav-link">Projects</a>
-        <a href="#about" class="mobile-nav-link">About</a>
-      </nav>
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="fixed inset-0 bg-[#050505] bg-opacity-95 flex-col items-center justify-center hidden z-50">
+    <button id="mobile-close-btn" class="absolute top-6 right-8 text-white/80 hover:text-white transition-colors duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    
+    <div class="flex flex-col items-center justify-center space-y-8">
+      <a href="/#" class="mobile-nav-link">Home</a>
+      <a href="/#about" class="mobile-nav-link">About</a>
+      <a href="/#expertise" class="mobile-nav-link">Expertise</a>
+      <a href="/#projects" class="mobile-nav-link">Projects</a>
     </div>
   </div>
 </header>
 
+<script>
+  // Header scroll effect
+  const header = document.getElementById('header');
+  let lastScrollY = window.scrollY;
+  
+  const updateHeader = () => {
+    const scrollY = window.scrollY;
+    
+    if (header) {
+      if (scrollY > 50) {
+        header.classList.add('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/5');
+      } else {
+        header.classList.remove('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/5');
+      }
+      
+      // Hide header when scrolling down, show when scrolling up
+      if (scrollY > lastScrollY && scrollY > 150) {
+        header.style.transform = 'translateY(-100%)';
+      } else {
+        header.style.transform = 'translateY(0)';
+      }
+    }
+    
+    lastScrollY = scrollY;
+  };
+  
+  window.addEventListener('scroll', updateHeader);
+  updateHeader(); // Initial call
+  
+  // Mobile menu functionality
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileCloseBtn = document.getElementById('mobile-close-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  const toggleMobileMenu = () => {
+    if (mobileMenu) {
+      if (mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+        mobileMenu.classList.add('flex');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+      } else {
+        mobileMenu.classList.remove('flex');
+        mobileMenu.classList.add('hidden');
+        document.body.style.overflow = ''; // Allow scrolling
+      }
+    }
+  };
+  
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+  }
+  
+  if (mobileCloseBtn) {
+    mobileCloseBtn.addEventListener('click', toggleMobileMenu);
+  }
+  
+  // Close mobile menu when clicking on links
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+  mobileNavLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      toggleMobileMenu();
+    });
+  });
+</script>
+
 <style>
-  #main-header {
-    backdrop-filter: blur(15px);
-    background: linear-gradient(180deg, rgba(5, 5, 5, 0.95) 0%, rgba(5, 5, 5, 0.8) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  }
-  
-  #main-header.scrolled {
-    background: linear-gradient(180deg, rgba(5, 5, 5, 0.98) 0%, rgba(5, 5, 5, 0.95) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  /* Re-add nav styling to ensure consistency */
+  /* Navigation link styles */
   .nav-link {
-    @apply text-white/40 hover:text-white transition-all duration-300 text-sm tracking-wider font-light relative;
-    padding-bottom: 4px;
+    position: relative;
+    color: rgba(255, 255, 255, 0.6);
+    transition: color 0.3s ease;
+    font-weight: 300;
   }
   
   .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 50%;
+    left: 0;
+    bottom: -5px;
     width: 0;
     height: 1px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0.2) 100%);
-    transition: all 0.3s ease;
-    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    transition: width 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    color: rgba(255, 255, 255, 1);
   }
   
   .nav-link:hover::after {
     width: 100%;
   }
   
-  .nav-link.active {
-    @apply text-white;
-  }
-  
-  .nav-link.active::after {
-    width: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.3) 100%);
-  }
-  
+  /* Mobile nav link styles */
   .mobile-nav-link {
-    @apply text-white/40 hover:text-white transition-colors duration-300 text-lg font-light relative;
-    padding-left: 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.5rem;
+    font-weight: 300;
     transition: all 0.3s ease;
   }
   
   .mobile-nav-link:hover {
-    padding-left: 8px;
-  }
-  
-  .mobile-nav-link.active {
-    @apply text-white;
-    padding-left: 8px;
+    color: rgba(255, 255, 255, 1);
+    transform: translateX(5px);
   }
 </style>
-
-<script>
-  // Handle scroll effect for header
-  const header = document.getElementById('main-header');
-  const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
-  const sections = document.querySelectorAll('section[id]');
-  const mobileMenuToggle = document.getElementById('menu-toggle');
-  const mobileMenu = document.getElementById('mobile-menu');
-  
-  // Toggle mobile menu
-  mobileMenuToggle?.addEventListener('click', () => {
-    mobileMenu?.classList.toggle('hidden');
-  });
-  
-  // Close mobile menu when clicking on a link
-  document.querySelectorAll('.mobile-nav-link').forEach(link => {
-    link.addEventListener('click', () => {
-      mobileMenu?.classList.add('hidden');
-    });
-  });
-  
-  // Handle scroll effects
-  window.addEventListener('scroll', () => {
-    const scrollPosition = window.scrollY;
-    
-    // Add/remove scrolled class to header
-    if (scrollPosition > 50) {
-      header?.classList.add('scrolled');
-    } else {
-      header?.classList.remove('scrolled');
-    }
-    
-    // Update active nav link based on scroll position
-    let currentSection = '';
-    
-    sections.forEach(section => {
-      const sectionTop = (section as HTMLElement).offsetTop - 100;
-      const sectionHeight = (section as HTMLElement).offsetHeight;
-      
-      if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
-        currentSection = section.getAttribute('id') || '';
-      }
-    });
-    
-    navLinks.forEach(link => {
-      link.classList.remove('active');
-      const href = link.getAttribute('href');
-      if (href && href.includes(`#${currentSection}`)) {
-        link.classList.add('active');
-      }
-    });
-  });
-  
-  // Smooth scrolling for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach((anchor: Element) => {
-    anchor.addEventListener('click', function(this: HTMLAnchorElement, e: Event) {
-      e.preventDefault();
-      
-      const href = this.getAttribute('href');
-      if (!href || href === '#') return;
-      
-      const targetId = href.replace(/^\/+/, '');
-      const targetElement = document.getElementById(targetId.replace('#', ''));
-      
-      if (targetElement) {
-        window.scrollTo({
-          top: targetElement.offsetTop - 80,
-          behavior: 'smooth'
-        });
-      }
-    });
-  });
-</script>
