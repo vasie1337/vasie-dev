@@ -19,7 +19,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
+    font-weight: 300;
     line-height: 1.2;
   }
 }
@@ -28,15 +28,19 @@
   .btn-primary {
     display: inline-block;
     padding: 0.75rem 1.5rem;
-    background-color: rgb(255, 255, 255);
+    background-color: rgba(255, 255, 255, 0.9);
     color: black;
-    font-weight: 500;
+    font-weight: 400;
     border-radius: 0.125rem;
     transition-property: all;
     transition-duration: 300ms;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   .btn-primary:hover {
-    opacity: 0.9;
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
   
   .btn-secondary {
@@ -44,22 +48,24 @@
     padding: 0.75rem 1.5rem;
     background-color: transparent;
     color: white;
-    font-weight: 500;
+    font-weight: 400;
     border-radius: 0.125rem;
-    border: 1px solid white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     transition-property: all;
     transition-duration: 300ms;
   }
   .btn-secondary:hover {
-    background-color: white;
-    color: black;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
   
   .section-container {
     max-width: 72rem;
     margin-left: auto;
     margin-right: auto;
-    padding: 6rem 1rem;
+    padding: 8rem 1rem;
   }
 
   .font-secondary {
@@ -72,5 +78,17 @@
 
   .font-feature-numeric {
     font-feature-settings: "tnum", "zero";
+  }
+  
+  .section-title {
+    @apply text-4xl md:text-5xl font-light text-white mb-6;
+  }
+  
+  .section-title-line {
+    @apply h-px w-16 bg-white/30 mt-4;
+  }
+  
+  .card {
+    @apply bg-[#0a0a0a] border border-white/5 p-10 transition-all duration-300 hover:border-white/20;
   }
 }

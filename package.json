@@ -9,7 +9,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.5.2"
+    "astro": "^5.5.2",
+    "vanilla-tilt": "^1.8.1"
   },
   "devDependencies": {
     "@astrojs/tailwind": "^5.1.5",
