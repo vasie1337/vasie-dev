@@ -17,8 +17,8 @@
   </div>
   
   <div class="container mx-auto px-8 relative z-10">
-    <div class="flex">
-      <div class="hero-content max-w-3xl glass-card border border-white/10 p-10 hover:border-white/20 transition-all duration-500 ml-0 md:ml-12 reveal">
+    <div class="max-w-3xl mx-auto md:mx-0 md:ml-12">
+      <div class="hero-content glass-card border border-white/10 p-10 hover:border-white/20 transition-all duration-500 reveal">
         <div class="mb-1 text-white/40 text-lg font-light tracking-wider">VASIE</div>
         
         <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight">
@@ -99,80 +99,5 @@
   
   .hero-content:hover::before {
     opacity: 1;
-  }
-  
-  /* Enhanced animation classes */
-  .animate-bounce-subtle {
-    animation: bounce-subtle 2s ease-in-out infinite;
-  }
-  
-  .animate-width-expand {
-    animation: width-expand 1.5s ease-out forwards;
-    animation-delay: 0.8s;
-  }
-  
-  .animate-float-slow {
-    animation: float 8s ease-in-out infinite;
-  }
-  
-  .animate-float-medium {
-    animation: float 6s ease-in-out infinite;
-    animation-delay: 1s;
-  }
-  
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-  
-  .reveal.revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Button styles */
-  .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-  }
-  
-  .btn-primary:hover {
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-  
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    background-color: transparent;
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-  }
-  
-  .btn-secondary:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    color: white;
-  }
-  
-  @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0) translateX(-50%); }
-    50% { transform: translateY(5px) translateX(-50%); }
-  }
-  
-  @keyframes width-expand {
-    0% { transform: scaleX(0); transform-origin: left; }
-    100% { transform: scaleX(1); transform-origin: left; }
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
   }
 </style>

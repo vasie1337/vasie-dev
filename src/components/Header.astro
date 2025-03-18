@@ -2,21 +2,22 @@
 ---
 
 <header class="fixed top-0 left-0 w-full z-50 transition-all duration-500" id="header">
-  <div class="py-6 px-8">
+  <div class="py-5 px-8">
     <div class="container mx-auto">
       <nav class="flex items-center justify-between">
-        <a href="/" class="text-xl font-light">
-          <span class="text-white/80 hover:text-white transition-colors duration-300">VASIE</span>
+        <a href="/" class="text-xl font-light group">
+          <span class="text-white transition-colors duration-300 inline-block">VASIE</span>
+          <span class="block w-0 group-hover:w-full h-px bg-white/20 transition-all duration-300"></span>
         </a>
         
-        <div class="hidden md:flex items-center space-x-8">
+        <div class="hidden md:flex items-center space-x-10">
           <a href="/#" class="nav-link">Home</a>
           <a href="/#about" class="nav-link">About</a>
           <a href="/#expertise" class="nav-link">Expertise</a>
           <a href="/#projects" class="nav-link">Projects</a>
         </div>
         
-        <button id="mobile-menu-btn" class="md:hidden text-white/80 hover:text-white transition-colors duration-300">
+        <button id="mobile-menu-btn" class="md:hidden text-white hover:text-white/80 transition-colors duration-300">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -27,7 +28,7 @@
   
   <!-- Mobile Menu -->
   <div id="mobile-menu" class="fixed inset-0 bg-[#050505] bg-opacity-95 flex-col items-center justify-center hidden z-50">
-    <button id="mobile-close-btn" class="absolute top-6 right-8 text-white/80 hover:text-white transition-colors duration-300">
+    <button id="mobile-close-btn" class="absolute top-6 right-8 text-white hover:text-white/80 transition-colors duration-300">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -52,9 +53,9 @@
     
     if (header) {
       if (scrollY > 50) {
-        header.classList.add('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/5');
+        header.classList.add('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/10');
       } else {
-        header.classList.remove('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/5');
+        header.classList.remove('bg-[#050505]/80', 'backdrop-blur-md', 'border-b', 'border-white/10');
       }
       
       // Hide header when scrolling down, show when scrolling up
@@ -105,26 +106,63 @@
       toggleMobileMenu();
     });
   });
+  
+  // Add active class to nav link based on current section
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const mobileNavs = document.querySelectorAll('.mobile-nav-link');
+  
+  const highlightNavOnScroll = () => {
+    const scrollY = window.scrollY;
+    
+    sections.forEach(section => {
+      const sectionElement = section as HTMLElement;
+      const sectionTop = sectionElement.offsetTop - 100;
+      const sectionHeight = sectionElement.offsetHeight;
+      const sectionId = section.getAttribute('id');
+      
+      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `/#${sectionId}`) {
+            link.classList.add('active');
+          }
+        });
+        
+        mobileNavs.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `/#${sectionId}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  };
+  
+  window.addEventListener('scroll', highlightNavOnScroll);
+  highlightNavOnScroll(); // Initial call
 </script>
 
 <style>
   /* Navigation link styles */
   .nav-link {
     position: relative;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
     transition: color 0.3s ease;
     font-weight: 300;
+    padding: 0.5rem 0;
   }
   
   .nav-link::after {
     content: '';
     position: absolute;
     left: 0;
-    bottom: -5px;
+    bottom: 0;
     width: 0;
     height: 1px;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.2);
     transition: width 0.3s ease;
+    transform-origin: left;
   }
   
   .nav-link:hover {
@@ -133,18 +171,55 @@
   
   .nav-link:hover::after {
     width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+  }
+  
+  .nav-link.active {
+    color: white;
+  }
+  
+  .nav-link.active::after {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.6);
   }
   
   /* Mobile nav link styles */
   .mobile-nav-link {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
     font-size: 1.5rem;
     font-weight: 300;
     transition: all 0.3s ease;
+    position: relative;
+    padding: 0.5rem 0;
+  }
+  
+  .mobile-nav-link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    transition: width 0.3s ease;
+    transform: translateX(-50%);
   }
   
   .mobile-nav-link:hover {
     color: rgba(255, 255, 255, 1);
-    transform: translateX(5px);
+  }
+  
+  .mobile-nav-link:hover::after {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.4);
+  }
+  
+  .mobile-nav-link.active {
+    color: white;
+  }
+  
+  .mobile-nav-link.active::after {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.6);
   }
 </style>
