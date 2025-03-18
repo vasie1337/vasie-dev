@@ -249,20 +249,30 @@ section + section::after {
 }
 
 .animate-float-slow {
-  animation: float-slow 10s ease-in-out infinite;
+  animation: float-slow 8s ease-in-out infinite;
 }
 
 .animate-float-medium {
-  animation: float-medium 8s ease-in-out infinite;
+  animation: float-medium 6s ease-in-out infinite;
+  animation-delay: 1s;
 }
 
 .animate-fade-in-up {
   animation: fade-in-up 0.8s ease-out forwards;
 }
 
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-width-expand {
+  animation: width-expand 1.2s ease-out forwards;
+  animation-delay: 0.2s;
+}
+
 .reveal {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(20px);
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -276,5 +286,45 @@ section + section::after {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+/* Card styles */
+.card-inner {
+  height: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-inner:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.2);
+}
+
+.card-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-inner:hover::before {
+  opacity: 1;
+}
+
+/* Section heading styles */
+.section-heading {
+  font-size: 0.875rem;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.5);
 }
 

@@ -2,19 +2,23 @@
 ---
 
 <section id="hero" class="min-h-screen flex flex-col justify-center relative overflow-hidden py-32">
-  <div class="absolute inset-0 bg-[#0a0a0a]/50"></div>
+  <!-- Improved dark gradient background -->
+  <div class="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] to-[#050505]"></div>
   
-  <!-- Subtle animated background elements -->
-  <div class="absolute left-[10%] top-[20%] w-[300px] h-[300px] opacity-[0.03] animate-float-slow">
-    <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]"></div>
+  <!-- Enhanced subtle animated background elements -->
+  <div class="absolute left-[10%] top-[20%] w-[400px] h-[400px] opacity-[0.05] animate-float-slow">
+    <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)]"></div>
   </div>
-  <div class="absolute right-[10%] bottom-[20%] w-[250px] h-[250px] opacity-[0.02] animate-float-medium">
+  <div class="absolute right-[15%] bottom-[15%] w-[350px] h-[350px] opacity-[0.03] animate-float-medium">
+    <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),transparent_70%)]"></div>
+  </div>
+  <div class="absolute left-[20%] bottom-[30%] w-[250px] h-[250px] opacity-[0.02] animate-float-slow">
     <div class="w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1),transparent_70%)]"></div>
   </div>
   
   <div class="container mx-auto px-8 relative z-10">
     <div class="flex">
-      <div class="hero-content max-w-3xl glass-card border border-white/5 p-10 hover:border-white/20 transition-all duration-500 ml-0 md:ml-12 reveal">
+      <div class="hero-content max-w-3xl glass-card border border-white/10 p-10 hover:border-white/20 transition-all duration-500 ml-0 md:ml-12 reveal">
         <div class="mb-1 text-white/40 text-lg font-light tracking-wider">VASIE</div>
         
         <h1 class="text-5xl md:text-7xl font-light mb-6 leading-tight">
@@ -78,8 +82,10 @@
 <style>
   .hero-content {
     position: relative;
-    box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 40px -15px rgba(0, 0, 0, 0.5);
     transform: translateZ(0);
+    backdrop-filter: blur(10px);
+    background: rgba(15, 15, 15, 0.4);
   }
   
   .hero-content::before {
@@ -95,7 +101,7 @@
     opacity: 1;
   }
   
-  /* Custom animation classes */
+  /* Enhanced animation classes */
   .animate-bounce-subtle {
     animation: bounce-subtle 2s ease-in-out infinite;
   }
@@ -105,13 +111,68 @@
     animation-delay: 0.8s;
   }
   
+  .animate-float-slow {
+    animation: float 8s ease-in-out infinite;
+  }
+  
+  .animate-float-medium {
+    animation: float 6s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+  
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+  
   @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
+    0%, 100% { transform: translateY(0) translateX(-50%); }
+    50% { transform: translateY(5px) translateX(-50%); }
   }
   
   @keyframes width-expand {
     0% { transform: scaleX(0); transform-origin: left; }
     100% { transform: scaleX(1); transform-origin: left; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
   }
 </style>

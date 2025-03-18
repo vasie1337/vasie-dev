@@ -1,0 +1,138 @@
+<section id="about" class="py-24 relative overflow-hidden bg-[#060606]">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(255,255,255,0.01)_2%,transparent_0%)] opacity-40"></div>
+  
+  <div class="container mx-auto px-8 relative z-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+      <div class="reveal" style="animation-delay: 0.1s">
+        <div class="border border-white/10 rounded-md p-1 hover:border-white/20 transition-all duration-500">
+          <div class="aspect-square bg-[#0a0a0a] rounded-md relative overflow-hidden">
+            <!-- Profile image placeholder -->
+            <div class="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]"></div>
+            
+            <div class="absolute inset-0 flex items-center justify-center text-white/10 text-4xl font-light">
+              VASIE
+            </div>
+            
+            <!-- Abstract geometric elements -->
+            <div class="absolute top-[20%] right-[10%] w-[100px] h-[100px] border border-white/5 rotate-45 opacity-20"></div>
+            <div class="absolute bottom-[20%] left-[10%] w-[150px] h-[150px] border border-white/5 rounded-full opacity-10"></div>
+            <div class="absolute top-[40%] left-[30%] w-[50px] h-[50px] border border-white/5 opacity-20"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="reveal" style="animation-delay: 0.2s">
+        <h2 class="text-3xl md:text-4xl font-light mb-4">About Me</h2>
+        <div class="w-20 h-px bg-white/20 mb-8"></div>
+        
+        <p class="text-white/70 mb-6 leading-relaxed">
+          I'm a software engineer with a passion for low-level programming, system optimization, and kernel development. 
+          With expertise in C/C++, assembly language, and systems programming, I focus on creating 
+          high-performance, reliable software solutions.
+        </p>
+        
+        <p class="text-white/70 mb-8 leading-relaxed">
+          My experience spans from embedded systems and real-time operating systems to network protocol 
+          design and kernel module development. I thrive on solving complex technical challenges and 
+          pushing the boundaries of what's possible at the system level.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <div class="section-heading relative inline-block mb-4">
+              <span class="inline-block">Education</span>
+              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
+            </div>
+            <ul class="space-y-3 text-white/60">
+              <li>M.S. Computer Science</li>
+              <li>B.S. Computer Engineering</li>
+            </ul>
+          </div>
+          
+          <div>
+            <div class="section-heading relative inline-block mb-4">
+              <span class="inline-block">Location</span>
+              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
+            </div>
+            <p class="text-white/60">
+              Remote · Europe
+            </p>
+          </div>
+        </div>
+        
+        <a href="mailto:contact@vasie.dev" class="btn-primary inline-flex items-center group relative overflow-hidden">
+          <span class="relative z-10">Get In Touch</span>
+          <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Reveal elements when they come into view
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+  
+  // Observe all elements with reveal class
+  document.querySelectorAll('.reveal').forEach(element => {
+    observer.observe(element);
+  });
+</script>
+
+<style>
+  .section-heading {
+    font-size: 0.875rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+  }
+  
+  .reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  
+  .animate-width-expand {
+    animation: width-expand 1.2s ease-out forwards;
+    animation-delay: 0.2s;
+  }
+  
+  @keyframes width-expand {
+    0% { transform: scaleX(0); transform-origin: left; }
+    100% { transform: scaleX(1); transform-origin: left; }
+  }
+</style>
