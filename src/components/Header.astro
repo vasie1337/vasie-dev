@@ -5,19 +5,19 @@
   <div class="py-5 px-8">
     <div class="container mx-auto">
       <nav class="flex items-center justify-between">
-        <a href="/" class="text-xl font-light group">
+        <a href="/" class="text-xl font-light group relative z-10">
           <span class="text-white transition-colors duration-300 inline-block">VASIE</span>
-          <span class="block w-0 group-hover:w-full h-px bg-white/20 transition-all duration-300"></span>
+          <span class="block w-0 group-hover:w-full h-px bg-white/20 transition-all duration-300 pointer-events-none"></span>
         </a>
         
         <div class="hidden md:flex items-center space-x-10">
-          <a href="/#" class="nav-link">Home</a>
-          <a href="/#about" class="nav-link">About</a>
-          <a href="/#expertise" class="nav-link">Expertise</a>
-          <a href="/#projects" class="nav-link">Projects</a>
+          <a href="/#" class="nav-link relative z-10">Home</a>
+          <a href="/#about" class="nav-link relative z-10">About</a>
+          <a href="/#expertise" class="nav-link relative z-10">Expertise</a>
+          <a href="/#projects" class="nav-link relative z-10">Projects</a>
         </div>
         
-        <button id="mobile-menu-btn" class="md:hidden text-white hover:text-white/80 transition-colors duration-300">
+        <button id="mobile-menu-btn" class="md:hidden text-white hover:text-white/80 transition-colors duration-300 relative z-10">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -151,6 +151,7 @@
     transition: color 0.3s ease;
     font-weight: 300;
     padding: 0.5rem 0;
+    cursor: pointer;
   }
   
   .nav-link::after {
@@ -163,6 +164,7 @@
     background: rgba(255, 255, 255, 0.2);
     transition: width 0.3s ease;
     transform-origin: left;
+    pointer-events: none;
   }
   
   .nav-link:hover {
@@ -191,6 +193,7 @@
     transition: all 0.3s ease;
     position: relative;
     padding: 0.5rem 0;
+    cursor: pointer;
   }
   
   .mobile-nav-link::after {
@@ -203,6 +206,7 @@
     background: rgba(255, 255, 255, 0.2);
     transition: width 0.3s ease;
     transform: translateX(-50%);
+    pointer-events: none;
   }
   
   .mobile-nav-link:hover {

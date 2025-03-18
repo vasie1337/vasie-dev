@@ -1,5 +1,5 @@
 <section id="about" class="py-24 relative overflow-hidden bg-[#060606]">
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(255,255,255,0.01)_2%,transparent_0%)] opacity-40"></div>
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(255,255,255,0.01)_2%,transparent_0%)] opacity-40 pointer-events-none"></div>
   
   <div class="container mx-auto px-8 relative z-10">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
@@ -7,16 +7,16 @@
         <div class="border border-white/10 rounded-md p-1 hover:border-white/20 transition-all duration-500">
           <div class="aspect-square bg-[#0a0a0a] rounded-md relative overflow-hidden">
             <!-- Profile image placeholder -->
-            <div class="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] pointer-events-none"></div>
             
-            <div class="absolute inset-0 flex items-center justify-center text-white/10 text-4xl font-light">
+            <div class="absolute inset-0 flex items-center justify-center text-white/10 text-4xl font-light pointer-events-none">
               VASIE
             </div>
             
             <!-- Abstract geometric elements -->
-            <div class="absolute top-[20%] right-[10%] w-[100px] h-[100px] border border-white/5 rotate-45 opacity-20"></div>
-            <div class="absolute bottom-[20%] left-[10%] w-[150px] h-[150px] border border-white/5 rounded-full opacity-10"></div>
-            <div class="absolute top-[40%] left-[30%] w-[50px] h-[50px] border border-white/5 opacity-20"></div>
+            <div class="absolute top-[20%] right-[10%] w-[100px] h-[100px] border border-white/5 rotate-45 opacity-20 pointer-events-none"></div>
+            <div class="absolute bottom-[20%] left-[10%] w-[150px] h-[150px] border border-white/5 rounded-full opacity-10 pointer-events-none"></div>
+            <div class="absolute top-[40%] left-[30%] w-[50px] h-[50px] border border-white/5 opacity-20 pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <div>
             <div class="section-heading relative inline-block mb-4">
               <span class="inline-block">Education</span>
-              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
+              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand pointer-events-none"></span>
             </div>
             <ul class="space-y-3 text-white/60">
               <li>M.S. Computer Science</li>
@@ -52,7 +52,7 @@
           <div>
             <div class="section-heading relative inline-block mb-4">
               <span class="inline-block">Location</span>
-              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand"></span>
+              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand pointer-events-none"></span>
             </div>
             <p class="text-white/60">
               Remote · Europe
@@ -60,9 +60,9 @@
           </div>
         </div>
         
-        <a href="mailto:contact@vasie.dev" class="btn-primary inline-flex items-center group relative overflow-hidden">
+        <a href="mailto:contact@vasie.dev" class="btn-primary inline-flex items-center group relative overflow-hidden z-10 cursor-pointer">
           <span class="relative z-10">Get In Touch</span>
-          <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>
+          <span class="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none"></span>
         </a>
       </div>
     </div>

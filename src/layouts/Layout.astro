@@ -52,6 +52,54 @@ const { title = "vasie.dev" } = Astro.props;
 				loader.style.display = 'none';
 			}, 700);
 		}
+		
+		// Fix for link clickability issues
+		const fixLinkClickability = () => {
+			// Add cursor pointer to all links
+			const allLinks = document.querySelectorAll('a');
+			allLinks.forEach(link => {
+				if (!link.classList.contains('cursor-pointer')) {
+					link.classList.add('cursor-pointer');
+				}
+				
+				// Ensure relative positioning and z-index
+				if (!link.style.position) {
+					link.style.position = 'relative';
+				}
+				if (!link.style.zIndex) {
+					link.style.zIndex = '10';
+				}
+				
+				// Prevent event propagation on links
+				link.addEventListener('click', (e) => {
+					e.stopPropagation();
+				});
+			});
+			
+			// Make sure overlays and decorative elements don't block links
+			const overlays = document.querySelectorAll('.absolute, .fixed');
+			overlays.forEach(overlay => {
+				if (!overlay.closest('a') && !overlay.querySelector('a')) {
+					if (!overlay.classList.contains('pointer-events-none')) {
+						overlay.classList.add('pointer-events-none');
+					}
+				}
+			});
+		};
+		
+		// Run initially and whenever DOM content might change
+		fixLinkClickability();
+		
+		// Create a mutation observer to watch for DOM changes
+		const observer = new MutationObserver(() => {
+			fixLinkClickability();
+		});
+		
+		// Start observing the document with the configured parameters
+		observer.observe(document.body, { 
+			childList: true, 
+			subtree: true 
+		});
 	});
 </script>
 
@@ -98,5 +146,12 @@ const { title = "vasie.dev" } = Astro.props;
 		position: relative;
 		z-index: 1;
 		transition: transform 0.5s ease, opacity 0.5s ease;
+	}
+	
+	/* Ensure links are always clickable */
+	a {
+		position: relative;
+		z-index: 10;
+		cursor: pointer;
 	}
 </style>
