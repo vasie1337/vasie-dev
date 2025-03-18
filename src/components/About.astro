@@ -2,44 +2,40 @@
   <div class="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(255,255,255,0.01)_2%,transparent_0%)] opacity-40 pointer-events-none"></div>
   
   <div class="container mx-auto px-8 relative z-10">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-      <div class="reveal" style="animation-delay: 0.1s">
-        <div class="border border-white/10 rounded-md p-1 hover:border-white/20 transition-all duration-500">
-          <div class="aspect-square bg-[#0a0a0a] rounded-md relative overflow-hidden">
-            <!-- Profile image placeholder -->
-            <div class="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] pointer-events-none"></div>
-            
-            <div class="absolute inset-0 flex items-center justify-center text-white/10 text-4xl font-light pointer-events-none">
-              VASIE
+    <div class="project-card reveal" style="animation-delay: 0.1s">
+      <div class="card-inner">
+        <div class="p-6">
+          <div class="flex flex-col md:flex-row gap-8 items-start">
+            <div class="flex-shrink-0 mx-auto md:mx-0">
+              <div class="border border-white/10 p-1 hover:border-white/20 transition-all duration-500 w-32 h-32">
+                <div class="overflow-hidden w-full h-full">
+                  <img src="/favicon.png" alt="Profile" class="w-full h-full object-cover" />
+                </div>
+              </div>
             </div>
             
-            <!-- Abstract geometric elements -->
-            <div class="absolute top-[20%] right-[10%] w-[100px] h-[100px] border border-white/5 rotate-45 opacity-20 pointer-events-none"></div>
-            <div class="absolute bottom-[20%] left-[10%] w-[150px] h-[150px] border border-white/5 rounded-full opacity-10 pointer-events-none"></div>
-            <div class="absolute top-[40%] left-[30%] w-[50px] h-[50px] border border-white/5 opacity-20 pointer-events-none"></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="reveal" style="animation-delay: 0.2s">
-        <h2 class="text-3xl md:text-4xl font-light mb-4">About Me</h2>
-        <div class="w-20 h-px bg-white/20 mb-8"></div>
-        
-        <p class="text-white/70 mb-6 leading-relaxed">
-          I'm a software engineer with a passion for low-level programming, system optimization, and kernel development. 
-          With expertise in C/C++, assembly language, and systems programming, I focus on creating 
-          high-performance, reliable software solutions.
-        </p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div>
-            <div class="section-heading relative inline-block mb-4">
-              <span class="inline-block">Location</span>
-              <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand pointer-events-none"></span>
+            <div class="flex-grow space-y-6 text-center md:text-left">
+              <div>
+                <h2 class="text-3xl md:text-4xl font-light mb-4">About Me</h2>
+                <div class="w-20 h-px bg-white/20 mb-8 mx-auto md:mx-0"></div>
+                
+                <p class="text-white/60 leading-relaxed">
+                  I'm a software engineer with a passion for low-level programming, system optimization, and kernel development. 
+                  With expertise in C/C++, assembly language, and systems programming, I focus on creating 
+                  high-performance, reliable software solutions.
+                </p>
+              </div>
+              
+              <div class="mt-6">
+                <div class="section-heading relative inline-block mb-4">
+                  <span class="inline-block">Location</span>
+                  <span class="absolute -bottom-2 left-0 w-full h-px bg-white/20 animate-width-expand pointer-events-none"></span>
+                </div>
+                <p class="text-white/60">
+                  The Netherlands
+                </p>
+              </div>
             </div>
-            <p class="text-white/60">
-              The Netherlands
-            </p>
           </div>
         </div>
       </div>
