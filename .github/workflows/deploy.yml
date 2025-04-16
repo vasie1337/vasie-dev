@@ -1,47 +1,70 @@
-name: Deploy to VPS
+###########################################
+# Deploy Stage
+###########################################
+name: 3. Deploy to VPS
 
+###########################################
+# Workflow Triggers
+###########################################
 on:
-  push:
-    branches: [ main, master ]
+  # Triggered by the build workflow
   workflow_dispatch:
+  
+  # For manual deploys without going through config/build
+  workflow_call:
     inputs:
+      project_name:
+        description: 'Project name'
+        required: true
+        type: string
       environment:
         description: 'Environment to deploy to'
         required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
-          - development
+        type: string
       instance_name:
-        description: 'Instance name (defaults to repository name if not specified)'
-        required: false
+        description: 'Instance name'
+        required: true
+        type: string
+      short_sha:
+        description: 'Short SHA of the commit'
+        required: true
         type: string
 
+###########################################
+# Jobs
+###########################################
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    # Use inputs from workflow_call or previous workflow steps
     env:
-      PROJECT_NAME: ${{ github.event.repository.name }}
-      # Default environment if not specified via workflow_dispatch
-      ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
-      # Use provided instance name or default to repo name if not specified
-      INSTANCE_NAME: ${{ github.event.inputs.instance_name || github.event.repository.name }}
+      PROJECT_NAME: ${{ inputs.project_name || needs.build.outputs.project_name }}
+      ENVIRONMENT: ${{ inputs.environment || needs.build.outputs.environment }}
+      INSTANCE_NAME: ${{ inputs.instance_name || needs.build.outputs.instance_name }}
+      SHORT_SHA: ${{ inputs.short_sha || needs.build.outputs.short_sha }}
     
     steps:
+      #---------------------------------------
+      # Checkout Repository
+      #---------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 1  # Shallow clone for faster checkout
       
-      # Cache Docker layers
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      #---------------------------------------
+      # Download Artifacts
+      #---------------------------------------
+      - name: Download deployment files
+        uses: actions/download-artifact@v3
         with:
-          buildkitd-flags: --debug
+          name: deployment-files
+          path: ./
       
-      # Setup SSH early in parallel with Docker steps
+      #---------------------------------------
+      # SSH Setup
+      #---------------------------------------
       - name: Setup SSH
         uses: webfactory/ssh-agent@v0.8.0
         with:
@@ -52,81 +75,16 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
       
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      - name: Generate deployment tag
-        id: tags
-        run: |
-          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
-          echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
-      
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ env.SHORT_SHA }}
-            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
-          cache-from: |
-            type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
-            type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:buildcache,mode=max
-          platforms: linux/amd64
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
-            NODE_ENV=${{ env.ENVIRONMENT }}
-      
-      - name: Generate Docker Compose file
-        run: |
-          cat > docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml << 'EOL'
-          version: '3.8'
-          
-          services:
-            ${{ env.INSTANCE_NAME }}:
-              image: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ env.SHORT_SHA }}
-              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}
-              restart: always
-              environment:
-                - NODE_ENV=${{ env.ENVIRONMENT }}
-                - INSTANCE_NAME=${{ env.INSTANCE_NAME }}
-              volumes:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:/data
-              networks:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
-              # Optional port mapping - uncomment and customize as needed
-              # ports:
-              #  - "${PORT_PREFIX}80:80"  # You can define PORT_PREFIX in repository secrets
-          
-            ${{ env.INSTANCE_NAME }}-cloudflared:
-              image: cloudflare/cloudflared:latest
-              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-cloudflared
-              restart: always
-              command: tunnel run
-              environment:
-                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
-              networks:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
-          
-          volumes:
-            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:
-              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data
-          
-          networks:
-            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network:
-              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
-              driver: bridge
-          EOL
-      
+      #---------------------------------------
+      # Deploy to VPS
+      #---------------------------------------
       - name: Copy files and deploy to VPS
         run: |
+          #----- Create Directory Structure -----
           # Create project directory structure with instance separation
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}"
           
+          #----- Copy Configuration Files -----
           # Copy docker-compose file
           scp docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/docker-compose.yml
           
@@ -145,8 +103,21 @@ jobs:
             scp .env.${{ env.ENVIRONMENT }}.${{ env.INSTANCE_NAME }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/.env
           fi
           
+          #----- Start Services -----
           # Deploy service with custom pull policy to avoid unnecessary pulls
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }} && docker-compose pull && docker-compose up -d --remove-orphans"
           
+          #----- Cleanup -----
           # More targeted cleanup - only remove dangling images and ones not used by current deployment
           ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "docker image prune -f && docker container prune -f"
+      
+      #---------------------------------------
+      # Deployment Notification
+      #---------------------------------------
+      - name: Deployment completion notification
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Project: ${{ env.PROJECT_NAME }}"
+          echo "Environment: ${{ env.ENVIRONMENT }}"
+          echo "Instance: ${{ env.INSTANCE_NAME }}"
+          echo "Version: ${{ env.SHORT_SHA }}"
