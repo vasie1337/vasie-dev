@@ -1,0 +1,111 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_NAME: ${{ github.event.repository.name }}
+      # Default environment if not specified via workflow_dispatch
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
+          cache-to: type=inline
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Generate Docker Compose file
+        run: |
+          cat > docker-compose.${{ env.ENVIRONMENT }}.yml << 'EOL'
+          version: '3.8'
+          
+          services:
+            app:
+              image: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}
+              restart: always
+              environment:
+                - NODE_ENV=${{ env.ENVIRONMENT }}
+                # Add other environment variables needed by your app
+              volumes:
+                - app-data:/data
+              networks:
+                - app-network
+          
+            cloudflared:
+              image: cloudflare/cloudflared:latest
+              restart: always
+              command: tunnel run
+              environment:
+                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN_PREFIX }}_${{ env.PROJECT_NAME }}_${{ env.ENVIRONMENT }}
+              networks:
+                - app-network
+          
+          volumes:
+            app-data:
+          
+          networks:
+            app-network:
+              driver: bridge
+          EOL
+      
+      - name: Copy files to VPS
+        run: |
+          # Create project directory structure
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}"
+          
+          # Copy docker-compose file
+          scp docker-compose.${{ env.ENVIRONMENT }}.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/docker-compose.yml
+          
+          # Copy any other needed files (e.g., .env files, configs)
+          if [ -f ".env.${{ env.ENVIRONMENT }}" ]; then
+            scp .env.${{ env.ENVIRONMENT }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/.env
+          fi
+      
+      - name: Deploy service
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }} && docker-compose pull && docker-compose up -d"
+      
+      - name: Clean up old images
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "docker system prune -af --filter 'until=24h'"
