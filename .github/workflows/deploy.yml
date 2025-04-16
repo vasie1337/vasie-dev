@@ -61,16 +61,16 @@ jobs:
           version: '3.8'
           
           services:
-            ${{ env.PROJECT_NAME }}:
+            app:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ github.sha }}
               restart: always
               environment:
                 - NODE_ENV=${{ env.ENVIRONMENT }}
                 # Add other environment variables needed by your app
               volumes:
-                - ${PROJECT_NAME}-data:/data
+                - app-data:/data
               networks:
-                - ${PROJECT_NAME}-network
+                - app-network
           
             cloudflared:
               image: cloudflare/cloudflared:latest
@@ -79,13 +79,13 @@ jobs:
               environment:
                 - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
               networks:
-                - ${PROJECT_NAME}-network
+                - app-network
           
           volumes:
-            ${PROJECT_NAME}-data:
+            app-data:
           
           networks:
-            ${PROJECT_NAME}-network:
+            app-network:
               driver: bridge
           EOL
       
