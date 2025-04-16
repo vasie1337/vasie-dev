@@ -24,14 +24,6 @@
     "animationDelay": "0.3s"
   },
   {
-    "title": "forum-backend",
-    "category": "API Development",
-    "description": "A robust backend implementation for a forum system, featuring user authentication, thread management, and RESTful API endpoints. Demonstrates modern backend development practices.",
-    "technologies": ["Node.js"],
-    "githubUrl": "https://github.com/Vasie1337/forum-backend",
-    "animationDelay": "0.4s"
-  },
-  {
     "title": "cs2-parser",
     "category": "Game Physics Visualization",
     "description": "A tool for parsing and visualizing Counter-Strike 2 physics files (.vmdl). Extracts collision meshes from CS2 maps and renders them in a 3D environment, useful for game analysis and development.",
