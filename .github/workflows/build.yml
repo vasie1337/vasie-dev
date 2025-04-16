@@ -163,7 +163,7 @@ jobs:
       # Save Artifacts
       #---------------------------------------
       - name: Upload Docker Compose as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-files
           path: docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml
