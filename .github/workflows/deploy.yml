@@ -81,16 +81,15 @@ jobs:
           version: '3.8'
           
           services:
-            app:
+            vasie-dev:
               image: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:${{ env.SHORT_SHA }}
               restart: always
               environment:
                 - NODE_ENV=${{ env.ENVIRONMENT }}
-                # Add other environment variables needed by your app
               volumes:
-                - app-data:/data
+                - vasie-dev-data:/data
               networks:
-                - app-network
+                - vasie-dev-network
           
             cloudflared:
               image: cloudflare/cloudflared:latest
@@ -99,13 +98,13 @@ jobs:
               environment:
                 - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
               networks:
-                - app-network
+                - vasie-dev-network
           
           volumes:
-            app-data:
+            vasie-dev-data:
           
           networks:
-            app-network:
+            vasie-dev-network:
               driver: bridge
           EOL
       
