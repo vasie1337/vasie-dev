@@ -77,7 +77,7 @@ jobs:
               restart: always
               command: tunnel run
               environment:
-                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN_PREFIX }}_${{ env.PROJECT_NAME }}_${{ env.ENVIRONMENT }}
+                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
               networks:
                 - app-network
           
