@@ -39,6 +39,7 @@ jobs:
       environment: ${{ steps.set-vars.outputs.environment }}
       instance_name: ${{ steps.set-vars.outputs.instance_name }}
       short_sha: ${{ steps.set-vars.outputs.short_sha }}
+      build_date: ${{ steps.set-vars.outputs.build_date }}
       
     steps:
       #---------------------------------------
@@ -68,12 +69,16 @@ jobs:
           echo "instance_name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
           echo "build_date=$BUILD_DATE" >> $GITHUB_OUTPUT
-      
-      #---------------------------------------
-      # Trigger Build Workflow
-      #---------------------------------------
-      - name: Trigger Build Workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: 2. Build Docker Image
-          token: ${{ secrets.GITHUB_TOKEN }} 
+
+  #---------------------------------------
+  # Call the Build Workflow
+  #---------------------------------------
+  build:
+    needs: config
+    uses: ./.github/workflows/build.yml
+    with:
+      project_name: ${{ needs.config.outputs.project_name }}
+      environment: ${{ needs.config.outputs.environment }}
+      instance_name: ${{ needs.config.outputs.instance_name }}
+      short_sha: ${{ needs.config.outputs.short_sha }}
+    secrets: inherit 

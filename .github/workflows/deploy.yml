@@ -7,10 +7,27 @@ name: 3. Deploy to VPS
 # Workflow Triggers
 ###########################################
 on:
-  # Triggered by the build workflow
+  # For manual deployment
   workflow_dispatch:
+    inputs:
+      project_name:
+        description: 'Project name'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: string
+      instance_name:
+        description: 'Instance name'
+        required: true
+        type: string
+      short_sha:
+        description: 'Short SHA of the commit'
+        required: true
+        type: string
   
-  # For manual deploys without going through config/build
+  # Called by other workflows
   workflow_call:
     inputs:
       project_name:
@@ -37,12 +54,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     
-    # Use inputs from workflow_call or previous workflow steps
+    # Use inputs directly from workflow_call or workflow_dispatch
     env:
-      PROJECT_NAME: ${{ inputs.project_name || needs.build.outputs.project_name }}
-      ENVIRONMENT: ${{ inputs.environment || needs.build.outputs.environment }}
-      INSTANCE_NAME: ${{ inputs.instance_name || needs.build.outputs.instance_name }}
-      SHORT_SHA: ${{ inputs.short_sha || needs.build.outputs.short_sha }}
+      PROJECT_NAME: ${{ inputs.project_name }}
+      ENVIRONMENT: ${{ inputs.environment }}
+      INSTANCE_NAME: ${{ inputs.instance_name }}
+      SHORT_SHA: ${{ inputs.short_sha }}
     
     steps:
       #---------------------------------------
@@ -61,6 +78,49 @@ jobs:
         with:
           name: deployment-files
           path: ./
+        continue-on-error: true  # In case running directly
+      
+      #---------------------------------------
+      # Generate Docker Compose file if not available
+      #---------------------------------------
+      - name: Generate Docker Compose file if needed
+        if: ${{ !success() }}
+        run: |
+          cat > docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml << 'EOL'
+          version: '3.8'
+          
+          services:
+            ${{ env.INSTANCE_NAME }}:
+              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.PROJECT_NAME }}:${{ env.SHORT_SHA }}
+              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}
+              restart: always
+              environment:
+                - NODE_ENV=${{ env.ENVIRONMENT }}
+                - INSTANCE_NAME=${{ env.INSTANCE_NAME }}
+              volumes:
+                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:/data
+              networks:
+                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
+          
+            ${{ env.INSTANCE_NAME }}-cloudflared:
+              image: cloudflare/cloudflared:latest
+              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-cloudflared
+              restart: always
+              command: tunnel run
+              environment:
+                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+              networks:
+                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
+          
+          volumes:
+            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:
+              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data
+          
+          networks:
+            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network:
+              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
+              driver: bridge
+          EOL
       
       #---------------------------------------
       # SSH Setup
