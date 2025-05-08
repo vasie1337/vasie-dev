@@ -207,6 +207,7 @@ jobs:
       run: |
         # Install yq if needed
         if ! command -v yq &> /dev/null; then
+          echo "Installing yq..."
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           chmod +x /usr/local/bin/yq
         fi
@@ -217,7 +218,12 @@ jobs:
         
         # List all services defined in docker-compose.yml
         echo "Services defined in docker-compose.yml:"
-        yq '.services | keys | .[]' docker-compose.yml
+        if command -v yq &> /dev/null; then
+          yq '.services | keys | .[]' docker-compose.yml
+        else
+          echo "yq not available, using grep to list services:"
+          grep -E "^[[:space:]]+[a-zA-Z0-9_-]+:" docker-compose.yml | sed 's/://' | tr -d ' '
+        fi
         
         # Create an empty service flags file to avoid issues with the next step
         touch service-flags.env
@@ -254,8 +260,20 @@ jobs:
         grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env || echo "No non-sensitive env vars to show"
         echo "Total environment variables: $(grep -v '^#' .env | wc -l)"
         
+        # Check for yq and install if needed
+        if ! command -v yq &> /dev/null; then
+          echo "Installing yq..."
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+        fi
+        
         echo "Docker compose services:"
-        yq -o=yaml '.services | keys' docker-compose.yml
+        if command -v yq &> /dev/null; then
+          yq -o=yaml '.services | keys' docker-compose.yml
+        else
+          echo "yq not available, using grep to list services:"
+          grep -E "^[[:space:]]+[a-zA-Z0-9_-]+:" docker-compose.yml | sed 's/://' | tr -d ' '
+        fi
         
         # Extract environment variables
         source .env
