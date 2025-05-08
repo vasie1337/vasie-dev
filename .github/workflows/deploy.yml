@@ -74,6 +74,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
+    - name: Set project directory name
+      id: project-dir
+      run: |
+        # Extract repository name without owner for use as project directory
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+        echo "dir_name=$REPO_NAME" >> $GITHUB_OUTPUT
+    
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
@@ -83,11 +90,14 @@ jobs:
     
     - name: Create .env file for deployment
       run: |
+        # Extract repository name without owner
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2)
+        
         cat > .env << EOF
         DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-        PROJECT_NAME=${{ github.repository_name }}
-        IMAGE_TAG=${{ github.sha }}
-        INSTANCE_NAME=portfolio
+        PROJECT_NAME=${REPO_NAME}
+        IMAGE_TAG=sha-${{ github.sha }}
+        INSTANCE_NAME=${REPO_NAME}
         ENVIRONMENT=production
         CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
@@ -128,20 +138,24 @@ jobs:
         sudo apt-get update && sudo apt-get install -y wget
         ./update-compose.sh
     
+    - name: Create project directory on VPS
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
+    
     - name: Copy files to VPS
       run: |
-        scp -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/
-        scp -i ~/.ssh/id_rsa .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/.env
+        scp -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+        scp -i ~/.ssh/id_rsa .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/.env
         
         # Copy any additional config files if specified
         if [ -d "config" ]; then
-          scp -i ~/.ssh/id_rsa -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/
+          scp -i ~/.ssh/id_rsa -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
         fi
     
     - name: Deploy on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
-          cd ~/project
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << EOF
+          cd ~/${{ steps.project-dir.outputs.dir_name }}
           
           # Pull all the latest images
           docker compose pull
@@ -158,8 +172,8 @@ jobs:
     
     - name: Verify deployment
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
-          cd ~/project
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << EOF
+          cd ~/${{ steps.project-dir.outputs.dir_name }}
           docker compose ps
           
           # Check logs for any errors
