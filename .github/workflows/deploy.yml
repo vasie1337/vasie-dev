@@ -2,15 +2,16 @@ name: Build and Deploy
 
 # Environment Variables System
 # ---------------------------
-# This workflow automatically passes GitHub secrets to your Docker containers:
-# 1. ALL GitHub secrets are automatically added to the .env file for deployment
-# 2. No special handling or naming conventions are needed for any variables
-# 3. Only essential workflow secrets (GITHUB_TOKEN, SSH_PRIVATE_KEY, DOCKER_TOKEN) are excluded
+# This workflow is designed to be fully dynamic with environment variables:
+# 1. All GitHub secrets are automatically added to the .env file for deployment
+# 2. No special prefixes or naming conventions are needed
+# 3. Just add a new secret in GitHub Settings → Secrets, and it will be available in your containers
+# 4. Workflow-specific secrets (DOCKER_USERNAME, SSH_PRIVATE_KEY, etc.) are excluded from the .env file
 #
-# To add any new environment variable:
-# 1. Simply add it as a GitHub Secret in Settings → Secrets (e.g., CLOUDFLARE_TUNNEL_TOKEN, DATABASE_URL)
+# Example: To add a new environment variable:
+# 1. Add a new secret in GitHub Settings → Secrets (e.g. DATABASE_URL)
 # 2. It will automatically be included in the .env file during deployment
-# 3. Reference it in your docker-compose.yml with ${VARIABLE_NAME}
+# 3. You can then use it in your docker-compose.yml with ${DATABASE_URL}
 
 on:
   push:
@@ -157,16 +158,16 @@ jobs:
         
         # Process all GitHub secrets and add them to .env
         # This makes the workflow fully dynamic - just add secrets to GitHub and they'll be used
-        echo "Adding GitHub secrets as environment variables..."
+        echo "Adding all GitHub secrets as environment variables..."
         
-        # Minimal list of secrets that should NOT be included in the .env file
-        # Only exclude secrets used for GitHub Actions that containers don't need
-        EXCLUDED_SECRETS="GITHUB_TOKEN SSH_PRIVATE_KEY DOCKER_TOKEN"
+        # List of secrets that should NOT be included in the .env file (used by the workflow itself)
+        EXCLUDED_SECRETS="DOCKER_USERNAME DOCKER_TOKEN GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
         
         # Process all GitHub secrets
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
-          # Skip only essential workflow secrets
+          # Skip if secret is in the excluded list
           if [[ " $EXCLUDED_SECRETS " == *" $secret "* ]]; then
+            echo "Skipping workflow-specific secret: $secret"
             continue
           fi
           
@@ -175,11 +176,31 @@ jobs:
           
           # Add to .env file with the exact same name as in GitHub
           echo "$secret=$value" >> .env
+          echo "Added secret: $secret"
         done
         
-        # Count variables (for logging only)
+        # Explicitly verify critical secrets
+        if [[ -n "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" ]]; then
+          echo "Verifying CLOUDFLARE_TUNNEL_TOKEN is set properly..."
+          if grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env; then
+            echo "CLOUDFLARE_TUNNEL_TOKEN successfully added to .env"
+          else
+            echo "CLOUDFLARE_TUNNEL_TOKEN found in secrets but not added to .env"
+            echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
+            echo "CLOUDFLARE_TUNNEL_TOKEN successfully added to .env"
+          fi
+        else
+          echo "CLOUDFLARE_TUNNEL_TOKEN not found in GitHub secrets"
+        fi
+        
+        # Count variables (excluding sensitive ones for logging)
+        VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
         TOTAL_COUNT=$(grep -v '^#' .env | wc -l)
-        echo "Created .env file with $TOTAL_COUNT total variables"
+        echo "Created .env file with $TOTAL_COUNT total variables ($VAR_COUNT non-sensitive)"
+        
+        # List all environment variables in .env file (without values)
+        echo "Variables in .env file:"
+        grep -v "^#" .env | cut -d= -f1
     
     - name: Update docker-compose with new image tags
       run: |
@@ -269,7 +290,7 @@ jobs:
     
     - name: Deploy on VPS
       run: |
-        # Create a minimal deployment script
+        # Create a simplified deployment script
         cat > deploy.sh << 'EOF'
         #!/bin/bash
         set -e
@@ -277,10 +298,37 @@ jobs:
         # Go to the project directory
         cd ~/$1
         
+        echo "Environment variables overview:"
+        echo "- Total environment variables: $(grep -v '^#' .env | wc -l)"
+        echo "- Non-sensitive variables: $(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)"
+        
+        # Check for critical environment variables
+        echo "Checking for critical environment variables:"
+        for var in "CLOUDFLARE_TUNNEL_TOKEN" "TUNNEL_TOKEN"; do
+          if grep -q "^$var=" .env; then
+            echo "- $var: Present ✓"
+          else
+            echo "- $var: Not found ✗"
+          fi
+        done
+        
+        # List all environment variable names without values
+        echo "All environment variables in .env (names only):"
+        grep -v '^#' .env | cut -d= -f1 | sort
+        
         # Check for yq and install if needed
         if ! command -v yq &> /dev/null; then
-          sudo wget -q -O /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          echo "Installing yq..."
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
+        fi
+        
+        echo "Docker compose services:"
+        if command -v yq &> /dev/null; then
+          yq -o=yaml '.services | keys' docker-compose.yml
+        else
+          echo "yq not available, using grep to list services:"
+          grep -E "^[[:space:]]+[a-zA-Z0-9_-]+:" docker-compose.yml | sed 's/://' | tr -d ' '
         fi
         
         # Extract environment variables
@@ -290,9 +338,9 @@ jobs:
         docker compose down || true
         
         echo "Pulling latest images..."
-        docker compose pull -q
+        docker compose pull
         
-        echo "Starting containers..."
+        echo "Starting new containers..."
         docker compose up -d
         
         echo "Containers running:"
@@ -300,17 +348,24 @@ jobs:
         
         # Check if all services started correctly
         if [ $(docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running" | wc -l) -gt 0 ]; then
-          echo "WARNING: Some containers are not running:"
+          echo "WARNING: Some containers may not have started correctly:"
           docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running"
           
-          echo "Container logs:"
-          docker compose logs --tail=10
+          # Show logs for non-running containers
+          echo "Logs for problematic containers:"
+          for container in $(docker compose ps -a --format "{{.Name}}" | grep -v ",running"); do
+            echo "--- Logs for $container ---"
+            docker logs --tail=20 $container || true
+          done
         fi
         
-        # Quick cleanup
-        docker image prune -f > /dev/null
+        echo "Cleaning up old images..."
+        docker image prune -f
         
-        echo "Deployment completed"
+        echo "Container logs (last 20 lines):"
+        docker compose logs --tail=20
+        
+        echo "Deployment completed successfully!"
         EOF
         
         chmod +x deploy.sh
@@ -320,4 +375,4 @@ jobs:
     - name: Verify deployment
       if: always()
       run: |
-        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps"
+        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps && docker compose logs --tail=20 || echo 'Deployment verification failed'"
