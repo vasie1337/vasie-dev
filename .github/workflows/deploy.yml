@@ -42,7 +42,9 @@ jobs:
       run: |
         # Convert owner name to lowercase
         OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
         echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
+        echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -57,7 +59,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v4
       with:
-        images: ${{ env.DOCKER_REGISTRY }}/${{ steps.lowercase.outputs.owner }}-${{ matrix.service.name }}
+        images: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.service.name }}
         tags: |
           type=sha
           latest
@@ -72,6 +74,10 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha,scope=${{ matrix.service.name }}
         cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+        secrets: |
+          "github_token=${{ secrets.GITHUB_TOKEN }}"
+        build-args: |
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     needs: build-and-push
@@ -86,10 +92,8 @@ jobs:
       run: |
         # Extract repository name without owner and convert to lowercase
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        REPO_FULL=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "repo_full=$REPO_FULL" >> $GITHUB_OUTPUT
         echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
     
     - name: Set project directory name
@@ -133,9 +137,8 @@ jobs:
           # Extract service name
           NAME=$(echo "$service" | jq -r '.name')
           
-          # Use the lowercase repo value passed from the environment
-          REPO="${REPO_FULL}"
-          IMAGE_TAG="${DOCKER_REGISTRY}/$REPO-$NAME:sha-${GITHUB_SHA}"
+          # Use proper Docker Hub format: username/repository:tag
+          IMAGE_TAG="${DOCKER_USERNAME}/${NAME}:sha-${GITHUB_SHA}"
           
           # Use yq to update the docker-compose.yml (install if necessary)
           if ! command -v yq &> /dev/null; then
@@ -150,7 +153,7 @@ jobs:
         
         chmod +x update-compose.sh
         sudo apt-get update && sudo apt-get install -y wget
-        REPO_FULL="${{ steps.lowercase.outputs.repo_full }}" GITHUB_SHA="${{ github.sha }}" DOCKER_REGISTRY="${{ env.DOCKER_REGISTRY }}" ./update-compose.sh
+        DOCKER_USERNAME="${{ steps.lowercase.outputs.docker_username }}" GITHUB_SHA="${{ github.sha }}" ./update-compose.sh
     
     - name: Create project directory on VPS
       run: |
