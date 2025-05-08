@@ -81,6 +81,17 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
     
+    - name: Create .env file for deployment
+      run: |
+        cat > .env << EOF
+        DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+        PROJECT_NAME=${{ github.repository_name }}
+        IMAGE_TAG=${{ github.sha }}
+        INSTANCE_NAME=portfolio
+        ENVIRONMENT=production
+        CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+        EOF
+    
     - name: Update docker-compose with new image tags
       run: |
         # Parse build config
@@ -89,25 +100,38 @@ jobs:
         # Create a temporary script to update docker-compose
         cat > update-compose.sh << 'EOF'
         #!/bin/bash
-        CONFIG='${{ needs.prepare.outputs.services }}'
         
-        # Update each service's image tag in docker-compose.yml
-        echo "$CONFIG" | jq -c '.[]' | while read -r service; do
+        # Get the services from build-config.json
+        SERVICES=$(cat .github/build-config.json | jq -c '.services[]')
+        
+        # Process each service
+        echo "$SERVICES" | while read -r service; do
+          # Extract service name
           NAME=$(echo "$service" | jq -r '.name')
-          IMAGE_TAG="${{ env.DOCKER_REGISTRY }}/${{ github.repository }}-${NAME}:${{ github.sha }}"
+          
+          # Create image tag string
+          REPO="${{ github.repository }}"
+          IMAGE_TAG="${{ env.DOCKER_REGISTRY }}/$REPO-$NAME:sha-${{ github.sha }}"
+          
+          # Use yq to update the docker-compose.yml (install if necessary)
+          if ! command -v yq &> /dev/null; then
+            wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            chmod +x /usr/local/bin/yq
+          fi
           
           # Update the image for this service
-          sed -i "/^  ${NAME}:/,/^  [^ ]/ s|image: .*|image: ${IMAGE_TAG}|" docker-compose.yml
+          yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
         done
         EOF
         
         chmod +x update-compose.sh
+        sudo apt-get update && sudo apt-get install -y wget
         ./update-compose.sh
     
     - name: Copy files to VPS
       run: |
         scp -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/
-        scp -i ~/.ssh/id_rsa .env.production ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/.env
+        scp -i ~/.ssh/id_rsa .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/.env
         
         # Copy any additional config files if specified
         if [ -d "config" ]; then
@@ -120,13 +144,13 @@ jobs:
           cd ~/project
           
           # Pull all the latest images
-          docker-compose pull
+          docker compose pull
           
           # Stop existing containers
-          docker-compose down
+          docker compose down
           
           # Start new containers
-          docker-compose up -d
+          docker compose up -d
           
           # Clean up old images
           docker image prune -f
@@ -136,8 +160,8 @@ jobs:
       run: |
         ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
           cd ~/project
-          docker-compose ps
+          docker compose ps
           
           # Check logs for any errors
-          docker-compose logs --tail=50
+          docker compose logs --tail=50
         EOF

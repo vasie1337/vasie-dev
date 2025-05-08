@@ -20,4 +20,6 @@ RUN npm install -g serve
 RUN adduser -D nodeuser
 USER nodeuser
 
+EXPOSE 3000
+
 CMD ["serve", "-s", "dist", "-l", "3000"] 

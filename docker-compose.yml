@@ -5,6 +5,8 @@ services:
     image: ${DOCKER_USERNAME}/${PROJECT_NAME}:${IMAGE_TAG}
     container_name: ${INSTANCE_NAME}-${ENVIRONMENT}
     restart: always
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=${ENVIRONMENT}
       - INSTANCE_NAME=${INSTANCE_NAME}
