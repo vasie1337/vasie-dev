@@ -216,9 +216,9 @@ jobs:
             echo "WARNING: Cloudflared service found but no tunnel token provided"
             echo "DISABLE_CLOUDFLARED=true" >> service-flags.env
             
-            # Create a modified docker-compose that uses profiles to conditionally enable services
-            yq -i '.services.cloudflared.profiles = ["cloudflared"]' docker-compose.yml
-            echo "Added profile constraint to cloudflared service"
+            # Create a modified docker-compose that completely removes the cloudflared service
+            echo "Creating a modified docker-compose.yml without cloudflared service"
+            yq -i 'del(.services.cloudflared)' docker-compose.yml
           fi
         fi
         
@@ -275,21 +275,9 @@ jobs:
         source .env
         NETWORK_NAME="${INSTANCE_NAME}-network"
         
-        # Set up command line arguments for docker compose based on disabled services
-        COMPOSE_ARGS=""
-        DISABLED_SERVICES=""
-        
-        # Check if any services should be disabled due to missing configuration
-        if [ "${DISABLE_CLOUDFLARED}" = "true" ]; then
-          echo "Cloudflare service will be skipped (missing required configuration)"
-          DISABLED_SERVICES="$DISABLED_SERVICES cloudflared"
-          # Only include specific profiles if cloudflared is disabled
-          COMPOSE_ARGS="--profile '*' --profile '!cloudflared'"
-        fi
-        
         echo "Ensuring all images are available..."
         # Pull latest version of all images
-        docker compose pull $COMPOSE_ARGS
+        docker compose pull
         
         echo "Stopping existing containers..."
         docker compose down || true
@@ -330,18 +318,13 @@ jobs:
         done
         
         echo "Starting new containers with --force-recreate to rebuild networks..."
-        if [ -n "$COMPOSE_ARGS" ]; then
-          echo "Using custom compose args: $COMPOSE_ARGS"
-          docker compose up -d --force-recreate $COMPOSE_ARGS
-        else
-          docker compose up -d --force-recreate
-        fi
+        docker compose up -d --force-recreate
         
         echo "Containers running:"
         docker compose ps
         
         # Get all running container names for this project
-        CONTAINERS=$(docker compose ps --format json | jq -r '.Name')
+        CONTAINERS=$(docker compose ps --format json | jq -r '.Name' 2>/dev/null || docker compose ps -q)
         
         echo "Waiting for services to stabilize..."
         sleep 5
@@ -351,14 +334,9 @@ jobs:
         docker compose ps -a
         
         # Check for services that should be running but aren't
-        ALL_SERVICES=$(docker compose config --services)
-        for service in $ALL_SERVICES; do
-          if echo "$DISABLED_SERVICES" | grep -q "$service"; then
-            echo "Service $service was intentionally skipped (missing configuration)"
-          elif ! docker compose ps --status running $service | grep -q "$service"; then
-            echo "WARNING: Service $service is not running properly. Check logs for errors."
-          fi
-        done
+        if [ "${DISABLE_CLOUDFLARED}" = "true" ]; then
+          echo "Cloudflared service was intentionally skipped (missing configuration)"
+        fi
         
         echo "Cleaning up old images..."
         docker image prune -f
