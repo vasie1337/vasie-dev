@@ -143,16 +143,10 @@ jobs:
         ENVIRONMENT=production
         EOF
         
-        # Always ensure Cloudflare Tunnel Token is included if it exists in secrets
-        if [[ "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" != "" ]]; then
-          echo "TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
-          echo "Adding Cloudflare Tunnel Token to environment"
-        fi
-        
         # Process all secrets from GitHub that should be included in the .env file
         # Any secret prefixed with ENV_ will be added (without the prefix)
         # This allows adding new environment variables without editing the workflow
-        echo "Adding additional environment variables from secrets..."
+        echo "Adding environment variables from secrets..."
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]' | grep '^ENV_'); do
           # Extract the value using the secret name
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
@@ -161,9 +155,6 @@ jobs:
           echo "$env_name=$value" >> .env
           echo "Added $env_name from secrets"
         done
-        
-        # For any additional secrets that need special handling, you can specify them here
-        # This is a flexible point where you can add custom logic for specific variables if needed
         
         # Count variables (excluding sensitive ones for logging)
         VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
@@ -220,47 +211,20 @@ jobs:
           chmod +x /usr/local/bin/yq
         fi
         
-        # Create script to check for services and their required environment variables
+        # Create script to check for services
         cat > check-services.sh << 'EOF'
         #!/bin/bash
         
-        # Create a temp file for any service-specific configuration
-        echo "# Service-specific configuration" > service-flags.env
+        # List all services defined in docker-compose.yml
+        echo "Services defined in docker-compose.yml:"
+        yq '.services | keys | .[]' docker-compose.yml
         
-        # Check if cloudflared service is present
-        if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
-          # Simply verify cloudflared is present without modifying anything
-          echo "Cloudflared service found in docker-compose.yml"
-          
-          # Check if the required env var exists in the .env file
-          if grep -q "TUNNEL_TOKEN" .env; then
-            echo "TUNNEL_TOKEN is present in environment variables"
-          else
-            echo "WARNING: TUNNEL_TOKEN not found in environment variables. Cloudflared may not function correctly."
-          fi
-        fi
-        
-        # Here you can add checks for other services if needed in the future
-        # This is a flexible extension point
-        
-        # Return the service flags if any were created
-        if [ -s service-flags.env ] && [ $(grep -v "^#" service-flags.env | wc -l) -gt 0 ]; then
-          echo "Created service-specific configuration:"
-          cat service-flags.env
-        else
-          echo "No additional service-specific configuration needed."
-          # Create an empty file to avoid issues with the next step
-          touch service-flags.env
-        fi
+        # Create an empty service flags file to avoid issues with the next step
+        touch service-flags.env
         EOF
         
         chmod +x check-services.sh
         ./check-services.sh
-        
-        # If service flags were created, append them to .env
-        if [ -f service-flags.env ] && [ -s service-flags.env ]; then
-          grep -v "^#" service-flags.env >> .env || true
-        fi
     
     - name: Create project directory on VPS
       run: |
@@ -295,14 +259,6 @@ jobs:
         
         # Extract environment variables
         source .env
-        
-        # Check for critical services and their required environment variables
-        if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
-          if ! grep -q "TUNNEL_TOKEN" .env; then
-            echo "WARNING: Cloudflared service is present in docker-compose.yml but TUNNEL_TOKEN is missing from environment variables"
-            echo "The deployment will continue but cloudflared may not function correctly"
-          fi
-        fi
         
         echo "Stopping existing containers..."
         docker compose down || true
