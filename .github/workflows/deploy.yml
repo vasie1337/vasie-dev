@@ -143,22 +143,44 @@ jobs:
         ENVIRONMENT=production
         EOF
         
-        # Process all secrets from GitHub that should be included in the .env file
-        # Any secret prefixed with ENV_ will be added (without the prefix)
-        # This allows adding new environment variables without editing the workflow
-        echo "Adding environment variables from secrets..."
+        # Define a mapping of GitHub secret names to environment variable names
+        # This allows secrets to have different names than their env var counterparts
+        # Format: "SECRET_NAME:ENV_VAR_NAME"
+        ENV_MAPPINGS=(
+          "CLOUDFLARE_TUNNEL_TOKEN:TUNNEL_TOKEN"
+          # Add more mappings here as needed
+        )
+        
+        echo "Processing environment variable mappings..."
+        # Process each mapping
+        for mapping in "${ENV_MAPPINGS[@]}"; do
+          SECRET_NAME="${mapping%%:*}"  # Get part before colon
+          ENV_NAME="${mapping##*:}"     # Get part after colon
+          
+          # Using dynamic variable reference to get the secret value
+          SECRET_VALUE=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$SECRET_NAME" '.[$key] // empty')
+          
+          if [ ! -z "$SECRET_VALUE" ]; then
+            echo "$ENV_NAME=$SECRET_VALUE" >> .env
+            echo "Added $ENV_NAME from $SECRET_NAME secret"
+          fi
+        done
+        
+        # Process all secrets with ENV_ prefix (legacy support)
+        echo "Adding environment variables with ENV_ prefix from secrets..."
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]' | grep '^ENV_'); do
           # Extract the value using the secret name
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
           # Remove the ENV_ prefix and add to .env file
           env_name=${secret#ENV_}
           echo "$env_name=$value" >> .env
-          echo "Added $env_name from secrets"
+          echo "Added $env_name from $secret secret"
         done
         
         # Count variables (excluding sensitive ones for logging)
         VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
-        echo "Created .env file with $VAR_COUNT non-sensitive variables plus sensitive variables"
+        TOTAL_VARS=$(grep -v "^#" .env | wc -l)
+        echo "Created .env file with $TOTAL_VARS total variables ($VAR_COUNT non-sensitive)"
     
     - name: Update docker-compose with new image tags
       run: |
