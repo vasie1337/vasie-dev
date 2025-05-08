@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.parse-config.outputs.services }}
+      service_names: ${{ steps.parse-names.outputs.names }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -25,6 +26,13 @@ jobs:
         # Read the config file and output as JSON
         CONFIG=$(cat ${{ env.CONFIG_FILE }})
         echo "services=$(echo $CONFIG | jq -c '.services')" >> $GITHUB_OUTPUT
+    
+    - name: Extract service names
+      id: parse-names
+      run: |
+        # Extract service names for later use
+        NAMES=$(cat ${{ env.CONFIG_FILE }} | jq -r '.services[].name' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+        echo "names=$NAMES" >> $GITHUB_OUTPUT
 
   build-and-push:
     needs: prepare
@@ -93,7 +101,7 @@ jobs:
         echo "Image successfully pushed and verified!"
 
   deploy:
-    needs: build-and-push
+    needs: [build-and-push, prepare]
     runs-on: ubuntu-latest
     
     steps:
@@ -108,6 +116,8 @@ jobs:
         DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
         echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
+        # Store service names for later use
+        echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
     
     - name: Set project directory name
       id: project-dir
@@ -133,19 +143,6 @@ jobs:
         CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
     
-    - name: Update docker-compose.yml to use portfolio service
-      run: |
-        # Ensure docker-compose uses the portfolio service
-        # This step runs before updating the image tag
-        if grep -q "services:" docker-compose.yml && grep -q "app:" docker-compose.yml; then
-          sed -i 's/  app:/  portfolio:/g' docker-compose.yml
-        fi
-
-        # Add ports if they don't exist
-        if ! grep -q "ports:" docker-compose.yml; then
-          sed -i '/restart: always/a\    ports:\n      - "3000:3000"' docker-compose.yml
-        fi
-    
     - name: Update docker-compose with new image tags
       run: |
         # Create a temporary script to update docker-compose
@@ -170,12 +167,14 @@ jobs:
             chmod +x /usr/local/bin/yq
           fi
           
-          # Update the image for this service
-          yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
-          
-          # Verify if the update was successful
-          echo "Updated service $NAME with image: $IMAGE_TAG"
-          grep -A 2 "$NAME:" docker-compose.yml
+          # Update the image for this service if it exists in the compose file
+          if yq '.services | has("'$NAME'")' docker-compose.yml | grep -q 'true'; then
+            yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
+            echo "Updated service $NAME with image: $IMAGE_TAG"
+            grep -A 2 "$NAME:" docker-compose.yml
+          else
+            echo "Service $NAME not found in docker-compose.yml, skipping update"
+          fi
         done
         EOF
         
@@ -203,7 +202,7 @@ jobs:
     
     - name: Deploy on VPS
       run: |
-        # Create a deployment script with error handling
+        # Create a universal deployment script that works with any project
         cat > deploy.sh << 'EOF'
         #!/bin/bash
         set -e
@@ -217,20 +216,21 @@ jobs:
         echo "Docker compose file:"
         cat docker-compose.yml
         
-        # Extract environment variables (for network name)
+        # Extract environment variables
         source .env
         NETWORK_NAME="${INSTANCE_NAME}-network"
         
-        echo "Ensuring Cloudflared image is available..."
-        docker pull cloudflare/cloudflared:latest
+        echo "Ensuring all images are available..."
+        # Pull latest version of all images
+        docker compose pull
         
         echo "Stopping existing containers..."
         docker compose down || true
         
-        echo "Cleaning up any existing networks with the same name..."
+        echo "Cleaning up existing networks..."
         # Check if network exists and remove it
         if docker network ls | grep -q "$NETWORK_NAME"; then
-          echo "Removing existing network: $NETWORK_NAME"
+          echo "Removing network: $NETWORK_NAME"
           
           # Force removal of any containers still using this network
           for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$NETWORK_NAME" 2>/dev/null || echo ""); do
@@ -245,46 +245,64 @@ jobs:
           sleep 2 # Give Docker a moment to clean up
         fi
         
-        # Clean up any legacy networks that might still exist
-        OLD_NETWORK_NAME="${INSTANCE_NAME}-production-network"
-        if docker network ls | grep -q "$OLD_NETWORK_NAME"; then
-          echo "Removing legacy network: $OLD_NETWORK_NAME"
-          # Force removal of any containers still using this network
-          for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$OLD_NETWORK_NAME" 2>/dev/null || echo ""); do
-            if [ -n "$container" ]; then
-              echo "Disconnecting container $container from network $OLD_NETWORK_NAME"
-              docker network disconnect -f "$OLD_NETWORK_NAME" "$container" || true
-            fi
-          done
-          docker network rm "$OLD_NETWORK_NAME" || true
-          sleep 2
-        fi
-        
-        echo "Pulling images..."
-        # Add more error handling to docker pull
-        docker compose pull || {
-          echo "ERROR: Failed to pull images. Checking if specific services can be pulled:"
-          DOCKER_USERNAME=$(grep DOCKER_USERNAME .env | cut -d'=' -f2)
-          docker pull $DOCKER_USERNAME/portfolio:latest || echo "ERROR: $DOCKER_USERNAME/portfolio:latest image not found!"
-          echo "Listing available Docker Hub images:"
-          curl -s "https://hub.docker.com/v2/repositories/$DOCKER_USERNAME/" | grep "name"
-          exit 1
-        }
+        # Clean up any legacy networks that might exist
+        for suffix in "" "-production" "-staging" "-dev"; do
+          OLD_NETWORK_NAME="${INSTANCE_NAME}${suffix}-network"
+          if docker network ls | grep -q "$OLD_NETWORK_NAME"; then
+            echo "Removing legacy network: $OLD_NETWORK_NAME"
+            # Force removal of any containers still using this network
+            for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$OLD_NETWORK_NAME" 2>/dev/null || echo ""); do
+              if [ -n "$container" ]; then
+                echo "Disconnecting container $container from network $OLD_NETWORK_NAME"
+                docker network disconnect -f "$OLD_NETWORK_NAME" "$container" || true
+              fi
+            done
+            docker network rm "$OLD_NETWORK_NAME" || true
+            sleep 1
+          fi
+        done
         
         echo "Starting new containers with --force-recreate to rebuild networks..."
         docker compose up -d --force-recreate
         
-        echo "Checking if services are running correctly..."
+        echo "Containers running:"
         docker compose ps
         
-        echo "Waiting 5 seconds for services to stabilize..."
+        # Get all running container names for this project
+        CONTAINERS=$(docker compose ps --format json | jq -r '.Name')
+        
+        echo "Waiting for services to stabilize..."
         sleep 5
+        
+        # Verify each service is running properly
+        echo "Verifying services:"
+        docker compose ps -a
         
         echo "Cleaning up old images..."
         docker image prune -f
         
         echo "Container logs:"
         docker compose logs --tail=20
+        
+        # Extract service names from docker-compose.yml
+        SERVICES=$(docker compose config --services)
+        
+        # Check if we have any potential hostname mismatches for Cloudflare
+        if docker compose ps | grep -q "cloudflared"; then
+          echo "Cloudflare tunnel detected. Checking for potential hostname mismatches..."
+          
+          # Analyze docker-compose.yml for potential hostname references
+          CF_SERVICE=$(docker compose config --service cloudflared)
+          
+          echo "Note: If your Cloudflare tunnel doesn't work, check if it's configured correctly."
+          echo "Current containers that can be referenced in tunnel config:"
+          for container in $CONTAINERS; do
+            SHORT_NAME=$(echo "$container" | sed "s/${INSTANCE_NAME}-//g" | sed "s/-${ENVIRONMENT}//g")
+            echo "- $container (short name: $SHORT_NAME)"
+          done
+        fi
+        
+        echo "Deployment completed successfully!"
         EOF
         
         chmod +x deploy.sh
