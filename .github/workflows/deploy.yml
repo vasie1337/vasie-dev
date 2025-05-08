@@ -195,6 +195,52 @@ jobs:
         echo "Final docker-compose.yml:"
         cat docker-compose.yml
     
+    - name: Check for services that might need special handling
+      run: |
+        # Install yq if needed
+        if ! command -v yq &> /dev/null; then
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+        fi
+        
+        # Create script to check for services with potential missing env vars
+        cat > check-services.sh << 'EOF'
+        #!/bin/bash
+        
+        # Create a temp env var file to disable problem services
+        echo "# Auto-generated flags to disable problematic services" > service-flags.env
+        
+        # Check for specific services that might need special handling
+        if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
+          if ! grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env || ! grep -q "TUNNEL_TOKEN" .env; then
+            echo "WARNING: Cloudflared service found but no tunnel token provided"
+            echo "DISABLE_CLOUDFLARED=true" >> service-flags.env
+            
+            # Create a modified docker-compose that uses profiles to conditionally enable services
+            yq -i '.services.cloudflared.profiles = ["cloudflared"]' docker-compose.yml
+            echo "Added profile constraint to cloudflared service"
+          fi
+        fi
+        
+        # Check for other services with potential missing configs and add them as needed
+        # Add more checks here for other services with required environment variables
+        
+        if [ -s service-flags.env ]; then
+          echo "Created service flags to disable services with missing configuration:"
+          cat service-flags.env
+        else
+          echo "All services appear to have required configuration."
+        fi
+        EOF
+        
+        chmod +x check-services.sh
+        ./check-services.sh
+        
+        # If service flags were created, append them to .env
+        if [ -f service-flags.env ] && [ -s service-flags.env ]; then
+          cat service-flags.env >> .env
+        fi
+    
     - name: Create project directory on VPS
       run: |
         ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
@@ -229,9 +275,21 @@ jobs:
         source .env
         NETWORK_NAME="${INSTANCE_NAME}-network"
         
+        # Set up command line arguments for docker compose based on disabled services
+        COMPOSE_ARGS=""
+        DISABLED_SERVICES=""
+        
+        # Check if any services should be disabled due to missing configuration
+        if [ "${DISABLE_CLOUDFLARED}" = "true" ]; then
+          echo "Cloudflare service will be skipped (missing required configuration)"
+          DISABLED_SERVICES="$DISABLED_SERVICES cloudflared"
+          # Only include specific profiles if cloudflared is disabled
+          COMPOSE_ARGS="--profile '*' --profile '!cloudflared'"
+        fi
+        
         echo "Ensuring all images are available..."
         # Pull latest version of all images
-        docker compose pull
+        docker compose pull $COMPOSE_ARGS
         
         echo "Stopping existing containers..."
         docker compose down || true
@@ -272,7 +330,12 @@ jobs:
         done
         
         echo "Starting new containers with --force-recreate to rebuild networks..."
-        docker compose up -d --force-recreate
+        if [ -n "$COMPOSE_ARGS" ]; then
+          echo "Using custom compose args: $COMPOSE_ARGS"
+          docker compose up -d --force-recreate $COMPOSE_ARGS
+        else
+          docker compose up -d --force-recreate
+        fi
         
         echo "Containers running:"
         docker compose ps
@@ -286,6 +349,16 @@ jobs:
         # Verify each service is running properly
         echo "Verifying services:"
         docker compose ps -a
+        
+        # Check for services that should be running but aren't
+        ALL_SERVICES=$(docker compose config --services)
+        for service in $ALL_SERVICES; do
+          if echo "$DISABLED_SERVICES" | grep -q "$service"; then
+            echo "Service $service was intentionally skipped (missing configuration)"
+          elif ! docker compose ps --status running $service | grep -q "$service"; then
+            echo "WARNING: Service $service is not running properly. Check logs for errors."
+          fi
+        done
         
         echo "Cleaning up old images..."
         docker image prune -f
