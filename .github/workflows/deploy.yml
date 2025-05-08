@@ -140,6 +140,8 @@ jobs:
         IMAGE_TAG=latest
         INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
         ENVIRONMENT=production
+        # Make sure Cloudflare Tunnel Token is included
+        TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
         
         # Add any additional secrets from GitHub that might be needed
@@ -207,29 +209,21 @@ jobs:
         cat > check-services.sh << 'EOF'
         #!/bin/bash
         
-        # Create a temp env var file to disable problem services
-        echo "# Auto-generated flags to disable problematic services" > service-flags.env
+        # Create a temp file for any service-specific configuration
+        echo "# Service-specific configuration" > service-flags.env
         
-        # Check for specific services that might need special handling
+        # Ensure TUNNEL_TOKEN is set and available for cloudflared
         if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
-          if ! grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env || ! grep -q "TUNNEL_TOKEN" .env; then
-            echo "WARNING: Cloudflared service found but no tunnel token provided"
-            echo "DISABLE_CLOUDFLARED=true" >> service-flags.env
-            
-            # Create a modified docker-compose that completely removes the cloudflared service
-            echo "Creating a modified docker-compose.yml without cloudflared service"
-            yq -i 'del(.services.cloudflared)' docker-compose.yml
-          fi
+          echo "Cloudflared service found - ensuring it will be properly deployed"
+          # Add a note that this is being intentionally kept
+          echo "# Cloudflared service is included in deployment" >> service-flags.env
         fi
         
-        # Check for other services with potential missing configs and add them as needed
-        # Add more checks here for other services with required environment variables
-        
         if [ -s service-flags.env ]; then
-          echo "Created service flags to disable services with missing configuration:"
+          echo "Created service configuration:"
           cat service-flags.env
         else
-          echo "All services appear to have required configuration."
+          echo "No service-specific configuration needed."
         fi
         EOF
         
@@ -257,7 +251,7 @@ jobs:
     
     - name: Deploy on VPS
       run: |
-        # Create a universal deployment script that works with any project
+        # Create a simplified deployment script
         cat > deploy.sh << 'EOF'
         #!/bin/bash
         set -e
@@ -265,78 +259,26 @@ jobs:
         # Go to the project directory
         cd ~/$1
         
-        echo "Environment variables:"
-        cat .env
+        echo "Environment variables (redacted sensitive values):"
+        grep -v "TOKEN\|SECRET\|PASSWORD" .env || echo "No non-sensitive env vars to show"
         
-        echo "Docker compose file:"
-        cat docker-compose.yml
+        echo "Docker compose file structure:"
+        yq -o=yaml '.services | keys' docker-compose.yml
         
         # Extract environment variables
         source .env
-        NETWORK_NAME="${INSTANCE_NAME}-network"
-        
-        echo "Ensuring all images are available..."
-        # Pull latest version of all images
-        docker compose pull
         
         echo "Stopping existing containers..."
         docker compose down || true
         
-        echo "Cleaning up existing networks..."
-        # Check if network exists and remove it
-        if docker network ls | grep -q "$NETWORK_NAME"; then
-          echo "Removing network: $NETWORK_NAME"
-          
-          # Force removal of any containers still using this network
-          for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$NETWORK_NAME" 2>/dev/null || echo ""); do
-            if [ -n "$container" ]; then
-              echo "Disconnecting container $container from network $NETWORK_NAME"
-              docker network disconnect -f "$NETWORK_NAME" "$container" || true
-            fi
-          done
-          
-          # Remove the network
-          docker network rm "$NETWORK_NAME" || true
-          sleep 2 # Give Docker a moment to clean up
-        fi
+        echo "Pulling latest images..."
+        docker compose pull
         
-        # Clean up any legacy networks that might exist
-        for suffix in "" "-production" "-staging" "-dev"; do
-          OLD_NETWORK_NAME="${INSTANCE_NAME}${suffix}-network"
-          if docker network ls | grep -q "$OLD_NETWORK_NAME"; then
-            echo "Removing legacy network: $OLD_NETWORK_NAME"
-            # Force removal of any containers still using this network
-            for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$OLD_NETWORK_NAME" 2>/dev/null || echo ""); do
-              if [ -n "$container" ]; then
-                echo "Disconnecting container $container from network $OLD_NETWORK_NAME"
-                docker network disconnect -f "$OLD_NETWORK_NAME" "$container" || true
-              fi
-            done
-            docker network rm "$OLD_NETWORK_NAME" || true
-            sleep 1
-          fi
-        done
-        
-        echo "Starting new containers with --force-recreate to rebuild networks..."
-        docker compose up -d --force-recreate
+        echo "Starting new containers..."
+        docker compose up -d
         
         echo "Containers running:"
         docker compose ps
-        
-        # Get all running container names for this project
-        CONTAINERS=$(docker compose ps --format json | jq -r '.Name' 2>/dev/null || docker compose ps -q)
-        
-        echo "Waiting for services to stabilize..."
-        sleep 5
-        
-        # Verify each service is running properly
-        echo "Verifying services:"
-        docker compose ps -a
-        
-        # Check for services that should be running but aren't
-        if [ "${DISABLE_CLOUDFLARED}" = "true" ]; then
-          echo "Cloudflared service was intentionally skipped (missing configuration)"
-        fi
         
         echo "Cleaning up old images..."
         docker image prune -f
