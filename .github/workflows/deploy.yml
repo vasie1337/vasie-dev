@@ -134,25 +134,40 @@ jobs:
     
     - name: Create .env file for deployment
       run: |
+        # Create base .env file with core configuration
         cat > .env << EOF
         DOCKER_USERNAME=${{ steps.lowercase.outputs.docker_username }}
         PROJECT_NAME=${{ steps.lowercase.outputs.repo_name }}
         IMAGE_TAG=latest
         INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
         ENVIRONMENT=production
-        # Make sure Cloudflare Tunnel Token is included
-        TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
         
-        # Add any additional secrets from GitHub that might be needed
-        # Format: If secret name starts with ENV_ it will be added to the .env file
+        # Always ensure Cloudflare Tunnel Token is included if it exists in secrets
+        if [[ "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" != "" ]]; then
+          echo "TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
+          echo "Adding Cloudflare Tunnel Token to environment"
+        fi
+        
+        # Process all secrets from GitHub that should be included in the .env file
+        # Any secret prefixed with ENV_ will be added (without the prefix)
+        # This allows adding new environment variables without editing the workflow
+        echo "Adding additional environment variables from secrets..."
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]' | grep '^ENV_'); do
           # Extract the value using the secret name
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
           # Remove the ENV_ prefix and add to .env file
           env_name=${secret#ENV_}
           echo "$env_name=$value" >> .env
+          echo "Added $env_name from secrets"
         done
+        
+        # For any additional secrets that need special handling, you can specify them here
+        # This is a flexible point where you can add custom logic for specific variables if needed
+        
+        # Count variables (excluding sensitive ones for logging)
+        VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
+        echo "Created .env file with $VAR_COUNT non-sensitive variables plus sensitive variables"
     
     - name: Update docker-compose with new image tags
       run: |
@@ -205,25 +220,37 @@ jobs:
           chmod +x /usr/local/bin/yq
         fi
         
-        # Create script to check for services with potential missing env vars
+        # Create script to check for services and their required environment variables
         cat > check-services.sh << 'EOF'
         #!/bin/bash
         
         # Create a temp file for any service-specific configuration
         echo "# Service-specific configuration" > service-flags.env
         
-        # Ensure TUNNEL_TOKEN is set and available for cloudflared
+        # Check if cloudflared service is present
         if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
-          echo "Cloudflared service found - ensuring it will be properly deployed"
-          # Add a note that this is being intentionally kept
-          echo "# Cloudflared service is included in deployment" >> service-flags.env
+          # Simply verify cloudflared is present without modifying anything
+          echo "Cloudflared service found in docker-compose.yml"
+          
+          # Check if the required env var exists in the .env file
+          if grep -q "TUNNEL_TOKEN" .env; then
+            echo "TUNNEL_TOKEN is present in environment variables"
+          else
+            echo "WARNING: TUNNEL_TOKEN not found in environment variables. Cloudflared may not function correctly."
+          fi
         fi
         
-        if [ -s service-flags.env ]; then
-          echo "Created service configuration:"
+        # Here you can add checks for other services if needed in the future
+        # This is a flexible extension point
+        
+        # Return the service flags if any were created
+        if [ -s service-flags.env ] && [ $(grep -v "^#" service-flags.env | wc -l) -gt 0 ]; then
+          echo "Created service-specific configuration:"
           cat service-flags.env
         else
-          echo "No service-specific configuration needed."
+          echo "No additional service-specific configuration needed."
+          # Create an empty file to avoid issues with the next step
+          touch service-flags.env
         fi
         EOF
         
@@ -232,7 +259,7 @@ jobs:
         
         # If service flags were created, append them to .env
         if [ -f service-flags.env ] && [ -s service-flags.env ]; then
-          cat service-flags.env >> .env
+          grep -v "^#" service-flags.env >> .env || true
         fi
     
     - name: Create project directory on VPS
@@ -260,13 +287,22 @@ jobs:
         cd ~/$1
         
         echo "Environment variables (redacted sensitive values):"
-        grep -v "TOKEN\|SECRET\|PASSWORD" .env || echo "No non-sensitive env vars to show"
+        grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env || echo "No non-sensitive env vars to show"
+        echo "Total environment variables: $(grep -v '^#' .env | wc -l)"
         
-        echo "Docker compose file structure:"
+        echo "Docker compose services:"
         yq -o=yaml '.services | keys' docker-compose.yml
         
         # Extract environment variables
         source .env
+        
+        # Check for critical services and their required environment variables
+        if yq '.services | has("cloudflared")' docker-compose.yml | grep -q 'true'; then
+          if ! grep -q "TUNNEL_TOKEN" .env; then
+            echo "WARNING: Cloudflared service is present in docker-compose.yml but TUNNEL_TOKEN is missing from environment variables"
+            echo "The deployment will continue but cloudflared may not function correctly"
+          fi
+        fi
         
         echo "Stopping existing containers..."
         docker compose down || true
@@ -280,10 +316,16 @@ jobs:
         echo "Containers running:"
         docker compose ps
         
+        # Check if all services started correctly
+        if [ $(docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running" | wc -l) -gt 0 ]; then
+          echo "WARNING: Some containers may not have started correctly:"
+          docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running"
+        fi
+        
         echo "Cleaning up old images..."
         docker image prune -f
         
-        echo "Container logs:"
+        echo "Container logs (last 20 lines):"
         docker compose logs --tail=20
         
         echo "Deployment completed successfully!"
