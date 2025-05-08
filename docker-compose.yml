@@ -31,3 +31,5 @@ networks:
   app-network:
     name: ${INSTANCE_NAME}-${ENVIRONMENT}-network
     driver: bridge
+    labels:
+      com.docker.compose.network: "app-network"
