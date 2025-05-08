@@ -140,8 +140,17 @@ jobs:
         IMAGE_TAG=latest
         INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
         ENVIRONMENT=production
-        CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
+        
+        # Add any additional secrets from GitHub that might be needed
+        # Format: If secret name starts with ENV_ it will be added to the .env file
+        for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]' | grep '^ENV_'); do
+          # Extract the value using the secret name
+          value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
+          # Remove the ENV_ prefix and add to .env file
+          env_name=${secret#ENV_}
+          echo "$env_name=$value" >> .env
+        done
     
     - name: Update docker-compose with new image tags
       run: |
@@ -283,24 +292,6 @@ jobs:
         
         echo "Container logs:"
         docker compose logs --tail=20
-        
-        # Extract service names from docker-compose.yml
-        SERVICES=$(docker compose config --services)
-        
-        # Check if we have any potential hostname mismatches for Cloudflare
-        if docker compose ps | grep -q "cloudflared"; then
-          echo "Cloudflare tunnel detected. Checking for potential hostname mismatches..."
-          
-          # Analyze docker-compose.yml for potential hostname references
-          CF_SERVICE=$(docker compose config --service cloudflared)
-          
-          echo "Note: If your Cloudflare tunnel doesn't work, check if it's configured correctly."
-          echo "Current containers that can be referenced in tunnel config:"
-          for container in $CONTAINERS; do
-            SHORT_NAME=$(echo "$container" | sed "s/${INSTANCE_NAME}-//g" | sed "s/-${ENVIRONMENT}//g")
-            echo "- $container (short name: $SHORT_NAME)"
-          done
-        fi
         
         echo "Deployment completed successfully!"
         EOF
