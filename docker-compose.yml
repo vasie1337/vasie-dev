@@ -1,6 +1,6 @@
 services:
   portfolio:
-    image: ${DOCKER_USERNAME}/portfolio:${IMAGE_TAG}
+    image: ${DOCKER_USERNAME}/portfolio:latest
     container_name: ${INSTANCE_NAME}-${ENVIRONMENT}
     restart: always
     ports:
