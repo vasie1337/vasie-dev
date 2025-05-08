@@ -284,16 +284,10 @@ jobs:
         echo "- Total environment variables: $(grep -v '^#' .env | wc -l)"
         echo "- Non-sensitive variables: $(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)"
         
-        # Check if CLOUDFLARE_TUNNEL_TOKEN exists in .env (without exposing it)
-        if grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env; then
-          echo "- CLOUDFLARE_TUNNEL_TOKEN: Present ✓"
-        else
-          echo "- CLOUDFLARE_TUNNEL_TOKEN: Not found"
-        fi
-        
-        # Show non-sensitive environment variables for debugging
-        echo "Non-sensitive environment variables:"
-        grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env || echo "None found"
+        # Show environment variables
+        echo "Environment variables:"
+        cat .env
+        echo "--------------------------------"
         
         # Check for yq and install if needed
         if ! command -v yq &> /dev/null; then
