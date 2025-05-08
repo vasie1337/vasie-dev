@@ -166,7 +166,7 @@ jobs:
         # Process all GitHub secrets
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
           # Skip if secret is in the excluded list
-          if [[ $EXCLUDED_SECRETS =~ $secret ]]; then
+          if [[ " $EXCLUDED_SECRETS " == *" $secret "* ]]; then
             echo "Skipping workflow-specific secret: $secret"
             continue
           fi
@@ -179,10 +179,28 @@ jobs:
           echo "Added secret: $secret"
         done
         
+        # Explicitly verify critical secrets
+        if [[ -n "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" ]]; then
+          echo "Verifying CLOUDFLARE_TUNNEL_TOKEN is set properly..."
+          if grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env; then
+            echo "✅ CLOUDFLARE_TUNNEL_TOKEN successfully added to .env"
+          else
+            echo "⚠️ CLOUDFLARE_TUNNEL_TOKEN found in secrets but not added to .env"
+            echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
+            echo "✅ Manually added CLOUDFLARE_TUNNEL_TOKEN to .env"
+          fi
+        else
+          echo "⚠️ CLOUDFLARE_TUNNEL_TOKEN not found in GitHub secrets"
+        fi
+        
         # Count variables (excluding sensitive ones for logging)
         VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
         TOTAL_COUNT=$(grep -v '^#' .env | wc -l)
         echo "Created .env file with $TOTAL_COUNT total variables ($VAR_COUNT non-sensitive)"
+        
+        # List all environment variables in .env file (without values)
+        echo "Variables in .env file:"
+        grep -v "^#" .env | cut -d= -f1
     
     - name: Update docker-compose with new image tags
       run: |
@@ -284,10 +302,19 @@ jobs:
         echo "- Total environment variables: $(grep -v '^#' .env | wc -l)"
         echo "- Non-sensitive variables: $(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)"
         
-        # Show environment variables
-        echo "Environment variables:"
-        cat .env
-        echo "--------------------------------"
+        # Check for critical environment variables
+        echo "Checking for critical environment variables:"
+        for var in "CLOUDFLARE_TUNNEL_TOKEN" "TUNNEL_TOKEN"; do
+          if grep -q "^$var=" .env; then
+            echo "- $var: Present ✓"
+          else
+            echo "- $var: Not found ✗"
+          fi
+        done
+        
+        # List all environment variable names without values
+        echo "All environment variables in .env (names only):"
+        grep -v '^#' .env | cut -d= -f1 | sort
         
         # Check for yq and install if needed
         if ! command -v yq &> /dev/null; then
