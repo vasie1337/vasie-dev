@@ -1,5 +1,18 @@
 name: Build and Deploy
 
+# Environment Variables System
+# ---------------------------
+# This workflow is designed to be fully dynamic with environment variables:
+# 1. All GitHub secrets are automatically added to the .env file for deployment
+# 2. No special prefixes or naming conventions are needed
+# 3. Just add a new secret in GitHub Settings → Secrets, and it will be available in your containers
+# 4. Workflow-specific secrets (DOCKER_USERNAME, SSH_PRIVATE_KEY, etc.) are excluded from the .env file
+#
+# Example: To add a new environment variable:
+# 1. Add a new secret in GitHub Settings → Secrets (e.g. DATABASE_URL)
+# 2. It will automatically be included in the .env file during deployment
+# 3. You can then use it in your docker-compose.yml with ${DATABASE_URL}
+
 on:
   push:
     branches: [ main ]
@@ -143,44 +156,33 @@ jobs:
         ENVIRONMENT=production
         EOF
         
-        # Define a mapping of GitHub secret names to environment variable names
-        # This allows secrets to have different names than their env var counterparts
-        # Format: "SECRET_NAME:ENV_VAR_NAME"
-        ENV_MAPPINGS=(
-          "CLOUDFLARE_TUNNEL_TOKEN:TUNNEL_TOKEN"
-          # Add more mappings here as needed
-        )
+        # Process all GitHub secrets and add them to .env
+        # This makes the workflow fully dynamic - just add secrets to GitHub and they'll be used
+        echo "Adding all GitHub secrets as environment variables..."
         
-        echo "Processing environment variable mappings..."
-        # Process each mapping
-        for mapping in "${ENV_MAPPINGS[@]}"; do
-          SECRET_NAME="${mapping%%:*}"  # Get part before colon
-          ENV_NAME="${mapping##*:}"     # Get part after colon
-          
-          # Using dynamic variable reference to get the secret value
-          SECRET_VALUE=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$SECRET_NAME" '.[$key] // empty')
-          
-          if [ ! -z "$SECRET_VALUE" ]; then
-            echo "$ENV_NAME=$SECRET_VALUE" >> .env
-            echo "Added $ENV_NAME from $SECRET_NAME secret"
+        # List of secrets that should NOT be included in the .env file (used by the workflow itself)
+        EXCLUDED_SECRETS="DOCKER_USERNAME DOCKER_TOKEN GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
+        
+        # Process all GitHub secrets
+        for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
+          # Skip if secret is in the excluded list
+          if [[ $EXCLUDED_SECRETS =~ $secret ]]; then
+            echo "Skipping workflow-specific secret: $secret"
+            continue
           fi
-        done
-        
-        # Process all secrets with ENV_ prefix (legacy support)
-        echo "Adding environment variables with ENV_ prefix from secrets..."
-        for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]' | grep '^ENV_'); do
-          # Extract the value using the secret name
+          
+          # Get the value of the secret
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
-          # Remove the ENV_ prefix and add to .env file
-          env_name=${secret#ENV_}
-          echo "$env_name=$value" >> .env
-          echo "Added $env_name from $secret secret"
+          
+          # Add to .env file with the exact same name as in GitHub
+          echo "$secret=$value" >> .env
+          echo "Added secret: $secret"
         done
         
         # Count variables (excluding sensitive ones for logging)
         VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
-        TOTAL_VARS=$(grep -v "^#" .env | wc -l)
-        echo "Created .env file with $TOTAL_VARS total variables ($VAR_COUNT non-sensitive)"
+        TOTAL_COUNT=$(grep -v '^#' .env | wc -l)
+        echo "Created .env file with $TOTAL_COUNT total variables ($VAR_COUNT non-sensitive)"
     
     - name: Update docker-compose with new image tags
       run: |
@@ -278,9 +280,20 @@ jobs:
         # Go to the project directory
         cd ~/$1
         
-        echo "Environment variables (redacted sensitive values):"
-        grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env || echo "No non-sensitive env vars to show"
-        echo "Total environment variables: $(grep -v '^#' .env | wc -l)"
+        echo "Environment variables overview:"
+        echo "- Total environment variables: $(grep -v '^#' .env | wc -l)"
+        echo "- Non-sensitive variables: $(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)"
+        
+        # Check if CLOUDFLARE_TUNNEL_TOKEN exists in .env (without exposing it)
+        if grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env; then
+          echo "- CLOUDFLARE_TUNNEL_TOKEN: Present ✓"
+        else
+          echo "- CLOUDFLARE_TUNNEL_TOKEN: Not found"
+        fi
+        
+        # Show non-sensitive environment variables for debugging
+        echo "Non-sensitive environment variables:"
+        grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env || echo "None found"
         
         # Check for yq and install if needed
         if ! command -v yq &> /dev/null; then
@@ -316,6 +329,13 @@ jobs:
         if [ $(docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running" | wc -l) -gt 0 ]; then
           echo "WARNING: Some containers may not have started correctly:"
           docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running"
+          
+          # Show logs for non-running containers
+          echo "Logs for problematic containers:"
+          for container in $(docker compose ps -a --format "{{.Name}}" | grep -v ",running"); do
+            echo "--- Logs for $container ---"
+            docker logs --tail=20 $container || true
+          done
         fi
         
         echo "Cleaning up old images..."
