@@ -8,19 +8,7 @@ RUN npm ci --no-audit --no-fund || npm install
 
 COPY . .
 
-# Handle GitHub token as build-time secret
-ARG GITHUB_TOKEN
-
-# Run build with error handling
-RUN if [ -n "$GITHUB_TOKEN" ]; then \
-      echo "Building with GitHub token set"; \
-      npm config set //registry.npmjs.org/:_authToken=${GITHUB_TOKEN}; \
-    else \
-      echo "No GitHub token provided"; \
-    fi && \
-    npm run build && \
-    # Clean up token after build
-    npm config delete //registry.npmjs.org/:_authToken || true
+RUN npm run build
 
 FROM node:20-alpine
 WORKDIR /app
