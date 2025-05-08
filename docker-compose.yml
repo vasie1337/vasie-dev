@@ -1,7 +1,7 @@
 services:
   portfolio:
     image: ${DOCKER_USERNAME}/portfolio:latest
-    container_name: ${INSTANCE_NAME}-${ENVIRONMENT}
+    container_name: ${INSTANCE_NAME}
     restart: always
     ports:
       - "3000:3000"
@@ -15,7 +15,7 @@ services:
 
   cloudflared:
     image: cloudflare/cloudflared:latest
-    container_name: ${INSTANCE_NAME}-${ENVIRONMENT}-cloudflared
+    container_name: ${INSTANCE_NAME}-cloudflared
     restart: always
     command: tunnel run
     environment:
@@ -25,11 +25,11 @@ services:
 
 volumes:
   app-data:
-    name: ${INSTANCE_NAME}-${ENVIRONMENT}-data
+    name: ${INSTANCE_NAME}-data
 
 networks:
   app-network:
-    name: ${INSTANCE_NAME}-${ENVIRONMENT}-network
+    name: ${INSTANCE_NAME}-network
     driver: bridge
     labels:
       com.docker.compose.network: "app-network"

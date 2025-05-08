@@ -219,7 +219,7 @@ jobs:
         
         # Extract environment variables (for network name)
         source .env
-        NETWORK_NAME="${INSTANCE_NAME}-${ENVIRONMENT}-network"
+        NETWORK_NAME="${INSTANCE_NAME}-network"
         
         echo "Ensuring Cloudflared image is available..."
         docker pull cloudflare/cloudflared:latest
@@ -245,6 +245,21 @@ jobs:
           sleep 2 # Give Docker a moment to clean up
         fi
         
+        # Clean up any legacy networks that might still exist
+        OLD_NETWORK_NAME="${INSTANCE_NAME}-production-network"
+        if docker network ls | grep -q "$OLD_NETWORK_NAME"; then
+          echo "Removing legacy network: $OLD_NETWORK_NAME"
+          # Force removal of any containers still using this network
+          for container in $(docker network inspect -f '{{range .Containers}}{{.Name}} {{end}}' "$OLD_NETWORK_NAME" 2>/dev/null || echo ""); do
+            if [ -n "$container" ]; then
+              echo "Disconnecting container $container from network $OLD_NETWORK_NAME"
+              docker network disconnect -f "$OLD_NETWORK_NAME" "$container" || true
+            fi
+          done
+          docker network rm "$OLD_NETWORK_NAME" || true
+          sleep 2
+        fi
+        
         echo "Pulling images..."
         # Add more error handling to docker pull
         docker compose pull || {
@@ -259,11 +274,22 @@ jobs:
         echo "Starting new containers with --force-recreate to rebuild networks..."
         docker compose up -d --force-recreate
         
+        echo "Checking if services are running correctly..."
+        docker compose ps
+        
+        echo "Waiting 5 seconds for services to stabilize..."
+        sleep 5
+        
+        echo "Verifying container names match Cloudflare tunnel configuration..."
+        if docker ps --format '{{.Names}}' | grep -q "^${INSTANCE_NAME}$"; then
+          echo "✅ Portfolio container name is correct: ${INSTANCE_NAME}"
+        else
+          echo "❌ WARNING: Portfolio container name might not match Cloudflare configuration"
+          docker ps | grep portfolio
+        fi
+        
         echo "Cleaning up old images..."
         docker image prune -f
-        
-        echo "Showing running containers:"
-        docker compose ps
         
         echo "Container logs:"
         docker compose logs --tail=20
