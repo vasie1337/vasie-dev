@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  portfolio:
+    image: ${DOCKER_USERNAME}/${PROJECT_NAME}:${IMAGE_TAG}
+    container_name: ${INSTANCE_NAME}-${ENVIRONMENT}
+    restart: always
+    environment:
+      - NODE_ENV=${ENVIRONMENT}
+      - INSTANCE_NAME=${INSTANCE_NAME}
+    volumes:
+      - app-data:/data
+    networks:
+      - app-network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ${INSTANCE_NAME}-${ENVIRONMENT}-cloudflared
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - app-network
+
+volumes:
+  app-data:
+    name: ${INSTANCE_NAME}-${ENVIRONMENT}-data
+
+networks:
+  app-network:
+    name: ${INSTANCE_NAME}-${ENVIRONMENT}-network
+    driver: bridge

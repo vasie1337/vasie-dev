@@ -1,183 +1,143 @@
-###########################################
-# Deploy Stage
-###########################################
-name: 3. Deploy to VPS
+name: Build and Deploy
 
-###########################################
-# Workflow Triggers
-###########################################
 on:
-  # For manual deployment
-  workflow_dispatch:
-    inputs:
-      project_name:
-        description: 'Project name'
-        required: true
-        type: string
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: string
-      instance_name:
-        description: 'Instance name'
-        required: true
-        type: string
-      short_sha:
-        description: 'Short SHA of the commit'
-        required: true
-        type: string
-  
-  # Called by other workflows
-  workflow_call:
-    inputs:
-      project_name:
-        description: 'Project name'
-        required: true
-        type: string
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        type: string
-      instance_name:
-        description: 'Instance name'
-        required: true
-        type: string
-      short_sha:
-        description: 'Short SHA of the commit'
-        required: true
-        type: string
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-###########################################
-# Jobs
-###########################################
+env:
+  DOCKER_REGISTRY: docker.io
+  CONFIG_FILE: .github/build-config.json
+
 jobs:
-  deploy:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.parse-config.outputs.services }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
     
-    # Use inputs directly from workflow_call or workflow_dispatch
-    env:
-      PROJECT_NAME: ${{ inputs.project_name }}
-      ENVIRONMENT: ${{ inputs.environment }}
-      INSTANCE_NAME: ${{ inputs.instance_name }}
-      SHORT_SHA: ${{ inputs.short_sha }}
+    - name: Parse build configuration
+      id: parse-config
+      run: |
+        # Read the config file and output as JSON
+        CONFIG=$(cat ${{ env.CONFIG_FILE }})
+        echo "services=$(echo $CONFIG | jq -c '.services')" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.prepare.outputs.services) }}
     
     steps:
-      #---------------------------------------
-      # Checkout Repository
-      #---------------------------------------
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 1  # Shallow clone for faster checkout
-      
-      #---------------------------------------
-      # Download Artifacts
-      #---------------------------------------
-      - name: Download deployment files
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-files
-          path: ./
-        continue-on-error: true  # In case running directly
-      
-      #---------------------------------------
-      # Generate Docker Compose file if not available
-      #---------------------------------------
-      - name: Generate Docker Compose file if needed
-        if: ${{ !success() }}
-        run: |
-          cat > docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml << 'EOL'
-          version: '3.8'
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
+    
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}-${{ matrix.service.name }}
+        tags: |
+          type=sha
+          latest
+    
+    - name: Build and push Docker image for ${{ matrix.service.name }}
+      uses: docker/build-push-action@v4
+      with:
+        context: ${{ matrix.service.context }}
+        file: ${{ matrix.service.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha,scope=${{ matrix.service.name }}
+        cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
+    
+    - name: Update docker-compose with new image tags
+      run: |
+        # Parse build config
+        CONFIG=$(cat ${{ env.CONFIG_FILE }})
+        
+        # Create a temporary script to update docker-compose
+        cat > update-compose.sh << 'EOF'
+        #!/bin/bash
+        CONFIG='${{ needs.prepare.outputs.services }}'
+        
+        # Update each service's image tag in docker-compose.yml
+        echo "$CONFIG" | jq -c '.[]' | while read -r service; do
+          NAME=$(echo "$service" | jq -r '.name')
+          IMAGE_TAG="${{ env.DOCKER_REGISTRY }}/${{ github.repository }}-${NAME}:${{ github.sha }}"
           
-          services:
-            ${{ env.INSTANCE_NAME }}:
-              image: ${{ secrets.DOCKER_USERNAME }}/${{ env.PROJECT_NAME }}:${{ env.SHORT_SHA }}
-              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}
-              restart: always
-              environment:
-                - NODE_ENV=${{ env.ENVIRONMENT }}
-                - INSTANCE_NAME=${{ env.INSTANCE_NAME }}
-              volumes:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:/data
-              networks:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
+          # Update the image for this service
+          sed -i "/^  ${NAME}:/,/^  [^ ]/ s|image: .*|image: ${IMAGE_TAG}|" docker-compose.yml
+        done
+        EOF
+        
+        chmod +x update-compose.sh
+        ./update-compose.sh
+    
+    - name: Copy files to VPS
+      run: |
+        scp -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/
+        scp -i ~/.ssh/id_rsa .env.production ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/.env
+        
+        # Copy any additional config files if specified
+        if [ -d "config" ]; then
+          scp -i ~/.ssh/id_rsa -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/project/
+        fi
+    
+    - name: Deploy on VPS
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
+          cd ~/project
           
-            ${{ env.INSTANCE_NAME }}-cloudflared:
-              image: cloudflare/cloudflared:latest
-              container_name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-cloudflared
-              restart: always
-              command: tunnel run
-              environment:
-                - TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
-              networks:
-                - ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
+          # Pull all the latest images
+          docker-compose pull
           
-          volumes:
-            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data:
-              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-data
+          # Stop existing containers
+          docker-compose down
           
-          networks:
-            ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network:
-              name: ${{ env.INSTANCE_NAME }}-${{ env.ENVIRONMENT }}-network
-              driver: bridge
-          EOL
-      
-      #---------------------------------------
-      # SSH Setup
-      #---------------------------------------
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-      
-      - name: Add VPS to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-      
-      #---------------------------------------
-      # Deploy to VPS
-      #---------------------------------------
-      - name: Copy files and deploy to VPS
-        run: |
-          #----- Create Directory Structure -----
-          # Create project directory structure with instance separation
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}"
+          # Start new containers
+          docker-compose up -d
           
-          #----- Copy Configuration Files -----
-          # Copy docker-compose file
-          scp docker-compose.${{ env.ENVIRONMENT }}-${{ env.INSTANCE_NAME }}.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/docker-compose.yml
+          # Clean up old images
+          docker image prune -f
+        EOF
+    
+    - name: Verify deployment
+      run: |
+        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << 'EOF'
+          cd ~/project
+          docker-compose ps
           
-          # Copy environment-specific env file if it exists
-          if [ -f ".env.${{ env.ENVIRONMENT }}" ]; then
-            scp .env.${{ env.ENVIRONMENT }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/.env.environment
-          fi
-          
-          # Copy instance-specific env file if it exists
-          if [ -f ".env.${{ env.INSTANCE_NAME }}" ]; then
-            scp .env.${{ env.INSTANCE_NAME }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/.env.instance
-          fi
-          
-          # Copy combined env file if it exists
-          if [ -f ".env.${{ env.ENVIRONMENT }}.${{ env.INSTANCE_NAME }}" ]; then
-            scp .env.${{ env.ENVIRONMENT }}.${{ env.INSTANCE_NAME }} ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }}/.env
-          fi
-          
-          #----- Start Services -----
-          # Deploy service with custom pull policy to avoid unnecessary pulls
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "cd ~/deployments/${{ env.PROJECT_NAME }}/${{ env.ENVIRONMENT }}/${{ env.INSTANCE_NAME }} && docker-compose pull && docker-compose up -d --remove-orphans"
-          
-          #----- Cleanup -----
-          # More targeted cleanup - only remove dangling images and ones not used by current deployment
-          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "docker image prune -f && docker container prune -f"
-      
-      #---------------------------------------
-      # Deployment Notification
-      #---------------------------------------
-      - name: Deployment completion notification
-        run: |
-          echo "Deployment completed successfully!"
-          echo "Project: ${{ env.PROJECT_NAME }}"
-          echo "Environment: ${{ env.ENVIRONMENT }}"
-          echo "Instance: ${{ env.INSTANCE_NAME }}"
-          echo "Version: ${{ env.SHORT_SHA }}"
+          # Check logs for any errors
+          docker-compose logs --tail=50
+        EOF
