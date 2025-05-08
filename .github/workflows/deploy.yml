@@ -280,14 +280,6 @@ jobs:
         echo "Waiting 5 seconds for services to stabilize..."
         sleep 5
         
-        echo "Verifying container names match Cloudflare tunnel configuration..."
-        if docker ps --format '{{.Names}}' | grep -q "^${INSTANCE_NAME}$"; then
-          echo "✅ Portfolio container name is correct: ${INSTANCE_NAME}"
-        else
-          echo "❌ WARNING: Portfolio container name might not match Cloudflare configuration"
-          docker ps | grep portfolio
-        fi
-        
         echo "Cleaning up old images..."
         docker image prune -f
         
