@@ -120,6 +120,19 @@ jobs:
         CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
         EOF
     
+    - name: Update docker-compose.yml to use portfolio service
+      run: |
+        # Ensure docker-compose uses the portfolio service
+        # This step runs before updating the image tag
+        if grep -q "services:" docker-compose.yml && grep -q "app:" docker-compose.yml; then
+          sed -i 's/  app:/  portfolio:/g' docker-compose.yml
+        fi
+
+        # Add ports if they don't exist
+        if ! grep -q "ports:" docker-compose.yml; then
+          sed -i '/restart: always/a\    ports:\n      - "3000:3000"' docker-compose.yml
+        fi
+    
     - name: Update docker-compose with new image tags
       run: |
         # Parse build config
@@ -134,7 +147,7 @@ jobs:
         
         # Process each service
         echo "$SERVICES" | while read -r service; do
-          # Extract service name
+          # Extract service name from build-config.json
           NAME=$(echo "$service" | jq -r '.name')
           
           # Use proper Docker Hub format: username/repository:tag
@@ -148,16 +161,24 @@ jobs:
           
           # Update the image for this service
           yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
+          
+          # Verify if the update was successful
+          echo "Updated service $NAME with image: $IMAGE_TAG"
+          grep -A 2 "$NAME:" docker-compose.yml
         done
         EOF
         
         chmod +x update-compose.sh
         sudo apt-get update && sudo apt-get install -y wget
         DOCKER_USERNAME="${{ steps.lowercase.outputs.docker_username }}" GITHUB_SHA="${{ github.sha }}" ./update-compose.sh
+        
+        # Print the updated docker-compose.yml for debugging
+        echo "Final docker-compose.yml:"
+        cat docker-compose.yml
     
     - name: Create project directory on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
+        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
     
     - name: Copy files to VPS
       run: |
@@ -171,28 +192,44 @@ jobs:
     
     - name: Deploy on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << EOF
-          cd ~/${{ steps.project-dir.outputs.dir_name }}
-          
-          # Pull all the latest images
-          docker compose pull
-          
-          # Stop existing containers
-          docker compose down
-          
-          # Start new containers
-          docker compose up -d
-          
-          # Clean up old images
-          docker image prune -f
+        # Create and run a deployment script on the remote server
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        # Go to the project directory
+        cd ~/$1
+        
+        # Print environment and docker-compose for debugging
+        echo "Environment variables:"
+        cat .env
+        
+        echo "Docker compose file:"
+        cat docker-compose.yml
+        
+        # Pull all the latest images
+        docker compose pull
+        
+        # Stop existing containers
+        docker compose down
+        
+        # Start new containers
+        docker compose up -d
+        
+        # Clean up old images
+        docker image prune -f
+        
+        # Show running containers
+        docker compose ps
+        
+        # Show logs
+        docker compose logs --tail=20
         EOF
+        
+        chmod +x deploy.sh
+        scp -i ~/.ssh/id_rsa deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/deploy.sh
+        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "bash ~/deploy.sh ${{ steps.project-dir.outputs.dir_name }}"
     
     - name: Verify deployment
       run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} << EOF
-          cd ~/${{ steps.project-dir.outputs.dir_name }}
-          docker compose ps
-          
-          # Check logs for any errors
-          docker compose logs --tail=50
-        EOF
+        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps && docker compose logs --tail=20"
