@@ -3,8 +3,6 @@ services:
     image: ${DOCKER_USERNAME}/portfolio:latest
     container_name: ${INSTANCE_NAME}
     restart: always
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=${ENVIRONMENT}
       - INSTANCE_NAME=${INSTANCE_NAME}
