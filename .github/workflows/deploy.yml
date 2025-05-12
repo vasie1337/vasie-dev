@@ -1,18 +1,5 @@
 name: Build and Deploy
 
-# Environment Variables System
-# ---------------------------
-# This workflow is designed to be fully dynamic with environment variables:
-# 1. All GitHub secrets are automatically added to the .env file for deployment
-# 2. No special prefixes or naming conventions are needed
-# 3. Just add a new secret in GitHub Settings → Secrets, and it will be available in your containers
-# 4. Workflow-specific secrets (DOCKER_USERNAME, SSH_PRIVATE_KEY, etc.) are excluded from the .env file
-#
-# Example: To add a new environment variable:
-# 1. Add a new secret in GitHub Settings → Secrets (e.g. DATABASE_URL)
-# 2. It will automatically be included in the .env file during deployment
-# 3. You can then use it in your docker-compose.yml with ${DATABASE_URL}
-
 on:
   push:
     branches: [ main ]
@@ -133,18 +120,15 @@ jobs:
         # Store service names for later use
         echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
     
+    - name: Install sshpass
+      run: |
+        sudo apt-get update && sudo apt-get install -y sshpass
+    
     - name: Set project directory name
       id: project-dir
       run: |
         # Use lowercase repository name for the directory
         echo "dir_name=${{ steps.lowercase.outputs.repo_name }}" >> $GITHUB_OUTPUT
-    
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
     
     - name: Create .env file for deployment
       run: |
@@ -277,16 +261,16 @@ jobs:
     
     - name: Create project directory on VPS
       run: |
-        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
     
     - name: Copy files to VPS
       run: |
-        scp -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
-        scp -i ~/.ssh/id_rsa .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/.env
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/.env
         
         # Copy any additional config files if specified
         if [ -d "config" ]; then
-          scp -i ~/.ssh/id_rsa -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
         fi
     
     - name: Deploy on VPS
@@ -370,10 +354,10 @@ jobs:
         EOF
         
         chmod +x deploy.sh
-        scp -i ~/.ssh/id_rsa deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/deploy.sh
-        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "bash ~/deploy.sh ${{ steps.project-dir.outputs.dir_name }}"
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/deploy.sh
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "bash ~/deploy.sh ${{ steps.project-dir.outputs.dir_name }}"
     
     - name: Verify deployment
       if: always()
       run: |
-        ssh -i ~/.ssh/id_rsa -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps && docker compose logs --tail=20 || echo 'Deployment verification failed'"
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps && docker compose logs --tail=20 || echo 'Deployment verification failed'"
