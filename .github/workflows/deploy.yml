@@ -1,44 +1,373 @@
-name: Deploy
+name: Build and Deploy
+
 on:
-  workflow_call:
-    inputs:
-      service_names:
-        required: true
-        type: string
-      image_tag:
-        required: true
-        type: string
-    secrets:
-      GITHUB_TOKEN:
-        required: true
-      VPS_USER:
-        required: true
-      VPS_PASSWORD:
-        required: true
-      VPS_IP:
-        required: true
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
 
 env:
   DOCKER_REGISTRY: ghcr.io
+  CONFIG_FILE: .github/build-config.json
 
 jobs:
-  deploy:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.parse-config.outputs.services }}
+      service_names: ${{ steps.parse-names.outputs.names }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Prepare Environment
+    - name: Parse build configuration
+      id: parse-config
       run: |
-        chmod +x .github/scripts/prepare-deployment.sh
-        ./.github/scripts/prepare-deployment.sh
+        # Read the config file and output as JSON
+        CONFIG=$(cat ${{ env.CONFIG_FILE }})
+        echo "services=$(echo $CONFIG | jq -c '.services')" >> $GITHUB_OUTPUT
     
-    - name: Deploy to VPS
+    - name: Extract service names
+      id: parse-names
       run: |
-        chmod +x .github/scripts/deploy-to-vps.sh
-        ./.github/scripts/deploy-to-vps.sh
-      env: 
-        VPS_USER: ${{ secrets.VPS_USER }}
-        VPS_PASSWORD: ${{ secrets.VPS_PASSWORD }}
-        VPS_IP: ${{ secrets.VPS_IP }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Extract service names for later use
+        NAMES=$(cat ${{ env.CONFIG_FILE }} | jq -r '.services[].name' | jq -R -s -c 'split("\n") | map(select(length > 0))')
+        echo "names=$NAMES" >> $GITHUB_OUTPUT
+
+  build-and-push:
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image-info.outputs.tag }}
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.prepare.outputs.services) }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set lowercase values
+      id: lowercase
+      run: |
+        # Convert owner name to lowercase
+        OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
+        SHORT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)
+        
+        echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
+        echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "short_hash=$SHORT_HASH" >> $GITHUB_OUTPUT
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create image tag
+      id: image-info
+      run: |
+        # Create tag format for GitHub Container Registry
+        TAG="${{ env.DOCKER_REGISTRY }}/${{ steps.lowercase.outputs.owner }}/${{ matrix.service.name }}:latest"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Building and pushing image: $TAG"
+    
+    - name: Build and push Docker image for ${{ matrix.service.name }}
+      uses: docker/build-push-action@v4
+      with:
+        context: ${{ matrix.service.context }}
+        file: ${{ matrix.service.dockerfile }}
+        push: true
+        tags: ${{ steps.image-info.outputs.tag }}
+        cache-from: type=gha,scope=${{ matrix.service.name }}
+        cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+        secrets: |
+          "github_token=${{ secrets.GITHUB_TOKEN }}"
+        build-args: |
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Verify image was pushed
+      run: |
+        echo "Verifying image ${{ steps.image-info.outputs.tag }} was pushed..."
+        # Give Registry a moment to process the push
+        sleep 5
+        docker pull ${{ steps.image-info.outputs.tag }} || { echo "Failed to pull image - it may not have been pushed correctly"; exit 1; }
+        echo "Image successfully pushed and verified!"
+
+  deploy:
+    needs: [build-and-push, prepare]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set lowercase values
+      id: lowercase
+      run: |
+        # Extract repository name without owner and convert to lowercase
+        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
+        OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
+        # Store service names for later use
+        echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
+    
+    - name: Install sshpass
+      run: |
+        sudo apt-get update && sudo apt-get install -y sshpass
+    
+    - name: Set project directory name
+      id: project-dir
+      run: |
+        # Use lowercase repository name for the directory
+        echo "dir_name=${{ steps.lowercase.outputs.repo_name }}" >> $GITHUB_OUTPUT
+    
+    - name: Create .env file for deployment
+      run: |
+        # Create base .env file with core configuration
+        cat > .env << EOF
+        DOCKER_REGISTRY=${{ env.DOCKER_REGISTRY }}
+        GITHUB_OWNER=${{ steps.lowercase.outputs.owner }}
+        PROJECT_NAME=${{ steps.lowercase.outputs.repo_name }}
+        IMAGE_TAG=latest
+        INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
+        ENVIRONMENT=production
+        # Add GitHub token for registry authentication
+        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        EOF
+        
+        # Process all GitHub secrets and add them to .env
+        # This makes the workflow fully dynamic - just add secrets to GitHub and they'll be used
+        echo "Adding all GitHub secrets as environment variables..."
+        
+        # List of secrets that should NOT be included in the .env file (used by the workflow itself)
+        EXCLUDED_SECRETS="GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
+        
+        # Process all GitHub secrets
+        for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
+          # Skip if secret is in the excluded list
+          if [[ " $EXCLUDED_SECRETS " == *" $secret "* ]]; then
+            echo "Skipping workflow-specific secret: $secret"
+            continue
+          fi
+          
+          # Get the value of the secret
+          value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
+          
+          # Add to .env file with the exact same name as in GitHub
+          echo "$secret=$value" >> .env
+          echo "Added secret: $secret"
+        done
+        
+        # Explicitly verify critical secrets
+        if [[ -n "${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" ]]; then
+          echo "Verifying CLOUDFLARE_TUNNEL_TOKEN is set properly..."
+          if grep -q "CLOUDFLARE_TUNNEL_TOKEN" .env; then
+            echo "CLOUDFLARE_TUNNEL_TOKEN successfully added to .env"
+          else
+            echo "CLOUDFLARE_TUNNEL_TOKEN found in secrets but not added to .env"
+            echo "CLOUDFLARE_TUNNEL_TOKEN=${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}" >> .env
+            echo "CLOUDFLARE_TUNNEL_TOKEN successfully added to .env"
+          fi
+        else
+          echo "CLOUDFLARE_TUNNEL_TOKEN not found in GitHub secrets"
+        fi
+        
+        # Count variables (excluding sensitive ones for logging)
+        VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
+        TOTAL_COUNT=$(grep -v '^#' .env | wc -l)
+        echo "Created .env file with $TOTAL_COUNT total variables ($VAR_COUNT non-sensitive)"
+        
+        # List all environment variables in .env file (without values)
+        echo "Variables in .env file:"
+        grep -v "^#" .env | cut -d= -f1
+    
+    - name: Update docker-compose with new image tags
+      run: |
+        # Create a temporary script to update docker-compose
+        cat > update-compose.sh << 'EOF'
+        #!/bin/bash
+        
+        # Get the services from build-config.json
+        SERVICES=$(cat .github/build-config.json | jq -c '.services[]')
+        
+        # Process each service
+        echo "$SERVICES" | while read -r service; do
+          # Extract service name from build-config.json
+          NAME=$(echo "$service" | jq -r '.name')
+          
+          # Use GitHub Container Registry format: ghcr.io/owner/repository:tag
+          # Using 'latest' tag consistently
+          IMAGE_TAG="${DOCKER_REGISTRY}/${GITHUB_OWNER}/${NAME}:latest"
+          
+          # Use yq to update the docker-compose.yml (install if necessary)
+          if ! command -v yq &> /dev/null; then
+            wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            chmod +x /usr/local/bin/yq
+          fi
+          
+          # Update the image for this service if it exists in the compose file
+          if yq '.services | has("'$NAME'")' docker-compose.yml | grep -q 'true'; then
+            yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
+            echo "Updated service $NAME with image: $IMAGE_TAG"
+            grep -A 2 "$NAME:" docker-compose.yml
+          else
+            echo "Service $NAME not found in docker-compose.yml, skipping update"
+          fi
+        done
+        EOF
+        
+        chmod +x update-compose.sh
+        sudo apt-get update && sudo apt-get install -y wget
+        DOCKER_REGISTRY="${{ env.DOCKER_REGISTRY }}" GITHUB_OWNER="${{ steps.lowercase.outputs.owner }}" ./update-compose.sh
+        
+        # Print the updated docker-compose.yml for debugging
+        echo "Final docker-compose.yml:"
+        cat docker-compose.yml
+    
+    - name: Check for services that might need special handling
+      run: |
+        # Install yq if needed
+        if ! command -v yq &> /dev/null; then
+          echo "Installing yq..."
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+        fi
+        
+        # Create script to check for services
+        cat > check-services.sh << 'EOF'
+        #!/bin/bash
+        
+        # List all services defined in docker-compose.yml
+        echo "Services defined in docker-compose.yml:"
+        if command -v yq &> /dev/null; then
+          yq '.services | keys | .[]' docker-compose.yml
+        else
+          echo "yq not available, using grep to list services:"
+          grep -E "^[[:space:]]+[a-zA-Z0-9_-]+:" docker-compose.yml | sed 's/://' | tr -d ' '
+        fi
+        
+        # Create an empty service flags file to avoid issues with the next step
+        touch service-flags.env
+        EOF
+        
+        chmod +x check-services.sh
+        ./check-services.sh
+    
+    - name: Create project directory on VPS
+      run: |
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
+    
+    - name: Copy files to VPS
+      run: |
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/.env
+        
+        # Copy any additional config files if specified
+        if [ -d "config" ]; then
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+        fi
+    
+    - name: Deploy on VPS
+      run: |
+        # Create a simplified deployment script
+        cat > deploy.sh << 'EOF'
+        #!/bin/bash
+        set -e
+        
+        # Go to the project directory
+        cd ~/$1
+        
+        echo "Environment variables overview:"
+        echo "- Total environment variables: $(grep -v '^#' .env | wc -l)"
+        echo "- Non-sensitive variables: $(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)"
+        
+        # Check for critical environment variables
+        echo "Checking for critical environment variables:"
+        for var in "CLOUDFLARE_TUNNEL_TOKEN" "TUNNEL_TOKEN" "GITHUB_TOKEN"; do
+          if grep -q "^$var=" .env; then
+            echo "- $var: Present ✓"
+          else
+            echo "- $var: Not found ✗"
+          fi
+        done
+        
+        # List all environment variable names without values
+        echo "All environment variables in .env (names only):"
+        grep -v '^#' .env | cut -d= -f1 | sort
+        
+        # Check for yq and install if needed
+        if ! command -v yq &> /dev/null; then
+          echo "Installing yq..."
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+        fi
+        
+        echo "Docker compose services:"
+        if command -v yq &> /dev/null; then
+          yq -o=yaml '.services | keys' docker-compose.yml
+        else
+          echo "yq not available, using grep to list services:"
+          grep -E "^[[:space:]]+[a-zA-Z0-9_-]+:" docker-compose.yml | sed 's/://' | tr -d ' '
+        fi
+        
+        # Extract environment variables
+        source .env
+        
+        echo "Stopping existing containers..."
+        docker compose down || true
+        
+        # Login to GitHub Container Registry
+        echo "Logging in to GitHub Container Registry..."
+        echo $GITHUB_TOKEN | docker login ${DOCKER_REGISTRY} -u ${GITHUB_OWNER} --password-stdin
+        
+        echo "Pulling latest images..."
+        docker compose pull
+        
+        echo "Starting new containers..."
+        docker compose up -d
+        
+        echo "Containers running:"
+        docker compose ps
+        
+        # Check if all services started correctly
+        if [ $(docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running" | wc -l) -gt 0 ]; then
+          echo "WARNING: Some containers may not have started correctly:"
+          docker compose ps -a --format "{{.Name}},{{.State}}" | grep -v ",running"
+          
+          # Show logs for non-running containers
+          echo "Logs for problematic containers:"
+          for container in $(docker compose ps -a --format "{{.Name}}" | grep -v ",running"); do
+            echo "--- Logs for $container ---"
+            docker logs --tail=20 $container || true
+          done
+        fi
+        
+        echo "Cleaning up old images..."
+        docker image prune -f
+        
+        echo "Container logs (last 20 lines):"
+        docker compose logs --tail=20
+        
+        echo "Deployment completed successfully!"
+        EOF
+        
+        chmod +x deploy.sh
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/deploy.sh
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "bash ~/deploy.sh ${{ steps.project-dir.outputs.dir_name }}"
+    
+    - name: Verify deployment
+      if: always()
+      run: |
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && docker compose ps && docker compose logs --tail=20 || echo 'Deployment verification failed'"
