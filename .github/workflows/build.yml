@@ -1,0 +1,47 @@
+name: Build
+on:
+  workflow_call:
+    inputs:
+      services:
+        required: true
+        type: string
+      service_names:
+        required: true
+        type: string
+    outputs:
+      image_tag:
+        description: "Docker image tag"
+        value: ${{ jobs.build.outputs.image_tag }}
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+env:
+  DOCKER_REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image-info.outputs.tag }}
+    strategy:
+      matrix:
+        service: ${{ fromJson(inputs.services) }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to Registry and Build
+      id: build-image
+      run: |
+        chmod +x .github/scripts/build-image.sh
+        ./.github/scripts/build-image.sh
+      env:
+        SERVICE_NAME: ${{ matrix.service.name }}
+        SERVICE_CONTEXT: ${{ matrix.service.context }}
+        SERVICE_DOCKERFILE: ${{ matrix.service.dockerfile }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

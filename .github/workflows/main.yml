@@ -1,0 +1,32 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prepare:
+    uses: ./.github/workflows/prepare.yml
+    
+  build:
+    needs: prepare
+    uses: ./.github/workflows/build.yml
+    with:
+      services: ${{ needs.prepare.outputs.services }}
+      service_names: ${{ needs.prepare.outputs.service_names }}
+    secrets: inherit
+    
+  deploy:
+    needs: [prepare, build]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      service_names: ${{ needs.prepare.outputs.service_names }}
+      image_tag: ${{ needs.build.outputs.image_tag }}
+    secrets: inherit
