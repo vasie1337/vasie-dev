@@ -128,9 +128,13 @@ jobs:
         GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
         EOF
         
+        # Define critical secure variables that must be verified
+        CRITICAL_SECRETS="CLOUDFLARE_TUNNEL_TOKEN TUNNEL_TOKEN DB_PASSWORD API_KEY"
+        
         # Add GitHub secrets to .env (excluding workflow-specific ones)
         EXCLUDED_SECRETS="GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER VPS_PASSWORD"
         
+        echo "Processing secrets..."
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
           if [[ " $EXCLUDED_SECRETS " == *" $secret "* ]]; then
             continue
@@ -138,7 +142,50 @@ jobs:
           
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
           echo "$secret=$value" >> .env
+          
+          # Remove from critical list if it was added
+          CRITICAL_SECRETS=${CRITICAL_SECRETS//$secret/}
         done
+        
+        # Explicitly check and handle any missing critical secrets
+        for critical in $CRITICAL_SECRETS; do
+          # Skip empty entries (may happen after string substitution)
+          if [ -z "$critical" ]; then
+            continue
+          fi
+          
+          # Check if this critical secret exists in GitHub secrets
+          value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$critical" '.[$key] // empty')
+          
+          if [ -n "$value" ]; then
+            # Double-check it wasn't already added
+            if ! grep -q "^$critical=" .env; then
+              echo "Adding critical secret: $critical"
+              echo "$critical=$value" >> .env
+            fi
+          else
+            echo "WARNING: Critical secret '$critical' not found in GitHub secrets"
+          fi
+        done
+        
+        # Verify all critical secrets were added
+        echo "Verifying critical secrets..."
+        MISSING=0
+        for critical in $CRITICAL_SECRETS; do
+          if [ -z "$critical" ]; then
+            continue
+          fi
+          
+          if ! grep -q "^$critical=" .env; then
+            echo "WARNING: Critical variable '$critical' is missing from .env file"
+            MISSING=1
+          fi
+        done
+        
+        # For security: Count variables without showing values
+        VAR_COUNT=$(grep -v "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
+        SECURE_COUNT=$(grep "TOKEN\|SECRET\|PASSWORD\|KEY" .env | wc -l)
+        echo "Created .env file with $VAR_COUNT regular variables and $SECURE_COUNT secure variables"
     
     - name: Update docker-compose with new image tags
       run: |
