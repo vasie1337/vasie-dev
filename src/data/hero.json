@@ -1,0 +1,18 @@
+{
+  "heading": "VASIE",
+  "title": "Software Engineer",
+  "description": "A software engineer passionate about low-level software, kernel development, and performance optimization",
+  "links": [
+    {
+      "text": "View Projects",
+      "url": "/#projects",
+      "isExternal": false
+    },
+    {
+      "text": "GitHub",
+      "url": "https://github.com/vasie1337",
+      "isExternal": true,
+      "icon": "github"
+    }
+  ]
+} 

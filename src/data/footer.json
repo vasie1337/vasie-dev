@@ -1,0 +1,15 @@
+{
+  "links": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/vasie1337",
+      "icon": "github"
+    },
+    {
+      "name": "Email",
+      "url": "mailto:contact@vasie.dev",
+      "icon": "mail"
+    }
+  ],
+  "copyright": "Vasie. All rights reserved."
+} 
