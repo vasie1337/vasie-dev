@@ -7,8 +7,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+
 env:
-  DOCKER_REGISTRY: docker.io
+  DOCKER_REGISTRY: ghcr.io
   CONFIG_FILE: .github/build-config.json
 
 jobs:
@@ -51,22 +55,21 @@ jobs:
       run: |
         OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
         SHORT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)
         
         echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
         echo "short_hash=$SHORT_HASH" >> $GITHUB_OUTPUT
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     
-    - name: Login to Docker Hub
+    - name: Login to GitHub Container Registry
       uses: docker/login-action@v2
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_TOKEN }}
+        registry: ${{ env.DOCKER_REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Create image tag
       id: image-info
@@ -100,7 +103,7 @@ jobs:
       id: lowercase
       run: |
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+        OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
         echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
         echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
@@ -117,11 +120,14 @@ jobs:
     - name: Create .env file for deployment
       run: |
         cat > .env << EOF
-        DOCKER_USERNAME=${{ steps.lowercase.outputs.docker_username }}
+        DOCKER_REGISTRY=${{ env.DOCKER_REGISTRY }}
+        GITHUB_OWNER=${{ steps.lowercase.outputs.owner }}
         PROJECT_NAME=${{ steps.lowercase.outputs.repo_name }}
         IMAGE_TAG=latest
         INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
         ENVIRONMENT=production
+        # Add GitHub token for registry authentication
+        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
         EOF
         
         EXCLUDED_SECRETS="DOCKER_USERNAME DOCKER_TOKEN GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
