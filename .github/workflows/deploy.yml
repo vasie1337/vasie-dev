@@ -12,52 +12,44 @@ env:
   CONFIG_FILE: .github/build-config.json
 
 jobs:
-  prepare:
+  prepare-config:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.parse-config.outputs.services }}
-      service_names: ${{ steps.parse-names.outputs.names }}
+      service_names: ${{ steps.parse-service-names.outputs.names }}
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v3
     
     - name: Parse build configuration
       id: parse-config
       run: |
-        CONFIG=$(cat ${{ env.CONFIG_FILE }})
-        echo "services=$(echo $CONFIG | jq -c '.services')" >> $GITHUB_OUTPUT
+        echo "services=$(cat ${{ env.CONFIG_FILE }} | jq -c '.services')" >> $GITHUB_OUTPUT
     
     - name: Extract service names
-      id: parse-names
+      id: parse-service-names
       run: |
-        NAMES=$(cat ${{ env.CONFIG_FILE }} | jq -r '.services[].name' | jq -R -s -c 'split("\n") | map(select(length > 0))')
-        echo "names=$NAMES" >> $GITHUB_OUTPUT
+        echo "names=$(cat ${{ env.CONFIG_FILE }} | jq -r '.services[].name' | jq -R -s -c 'split("\n") | map(select(length > 0))')" >> $GITHUB_OUTPUT
 
-  build-and-push:
-    needs: prepare
+  build-images:
+    needs: prepare-config
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ steps.image-info.outputs.tag }}
+      image_tag: ${{ steps.image-tag.outputs.tag }}
     strategy:
       matrix:
-        service: ${{ fromJson(needs.prepare.outputs.services) }}
+        service: ${{ fromJson(needs.prepare-config.outputs.services) }}
+      fail-fast: false
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v3
     
-    - name: Set lowercase values
-      id: lowercase
+    - name: Set repository variables
+      id: repo-vars
       run: |
-        OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
-        SHORT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)
-        
-        echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
-        echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
-        echo "short_hash=$SHORT_HASH" >> $GITHUB_OUTPUT
+        echo "docker_username=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        echo "short_hash=$(echo "${{ github.sha }}" | cut -c1-7)" >> $GITHUB_OUTPUT
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -68,19 +60,18 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_TOKEN }}
     
-    - name: Create image tag
-      id: image-info
+    - name: Generate image tag
+      id: image-tag
       run: |
-        TAG="${{ steps.lowercase.outputs.docker_username }}/${{ matrix.service.name }}:latest"
-        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "tag=${{ steps.repo-vars.outputs.docker_username }}/${{ matrix.service.name }}:latest" >> $GITHUB_OUTPUT
     
-    - name: Build and push Docker image for ${{ matrix.service.name }}
+    - name: Build and push ${{ matrix.service.name }}
       uses: docker/build-push-action@v4
       with:
         context: ${{ matrix.service.context }}
         file: ${{ matrix.service.dockerfile }}
         push: true
-        tags: ${{ steps.image-info.outputs.tag }}
+        tags: ${{ steps.image-tag.outputs.tag }}
         cache-from: type=gha,scope=${{ matrix.service.name }}
         cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
         secrets: |
@@ -88,53 +79,35 @@ jobs:
         build-args: |
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
-  deploy:
-    needs: [build-and-push, prepare]
+  deploy-services:
+    needs: [build-images, prepare-config]
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v3
     
-    - name: Set lowercase values
-      id: lowercase
+    - name: Set deployment variables
+      id: deploy-vars
       run: |
-        REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
-        echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
-        echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
-        echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
+        echo "repo_name=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        echo "docker_username=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+        echo "service_names=${{ needs.prepare-config.outputs.service_names }}" >> $GITHUB_OUTPUT
     
-    - name: Install sshpass
-      run: |
-        sudo apt-get update && sudo apt-get install -y sshpass
-    
-    - name: Set project directory name
-      id: project-dir
-      run: |
-        echo "dir_name=${{ steps.lowercase.outputs.repo_name }}" >> $GITHUB_OUTPUT
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y sshpass wget
     
     - name: Create .env file for deployment
       run: |
         cat > .env << EOF
-        DOCKER_USERNAME=${{ steps.lowercase.outputs.docker_username }}
-        PROJECT_NAME=${{ steps.lowercase.outputs.repo_name }}
+        DOCKER_USERNAME=${{ steps.deploy-vars.outputs.docker_username }}
+        PROJECT_NAME=${{ steps.deploy-vars.outputs.repo_name }}
         IMAGE_TAG=latest
-        INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
+        INSTANCE_NAME=${{ steps.deploy-vars.outputs.repo_name }}
         ENVIRONMENT=production
         EOF
         
-        # Write secrets to a temporary file to avoid shell escaping issues
-        echo '${{ toJSON(secrets) }}' > secrets.json
-        
-        # Process each secret from the file
-        for secret in $(jq -r 'keys[]' secrets.json); do
-          value=$(jq -r --arg key "$secret" '.[$key]' secrets.json)
-          echo "$secret=$value" >> .env
-        done
-        
-        # Remove temporary secrets file
-        rm secrets.json
+        echo '${{ toJSON(secrets) }}' | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> .env
     
     - name: Update docker-compose with new image tags
       run: |
@@ -143,14 +116,14 @@ jobs:
         
         SERVICES=$(cat .github/build-config.json | jq -c '.services[]')
         
+        if ! command -v yq &> /dev/null; then
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+        fi
+        
         echo "$SERVICES" | while read -r service; do
           NAME=$(echo "$service" | jq -r '.name')
           IMAGE_TAG="${DOCKER_USERNAME}/${NAME}:latest"
-          
-          if ! command -v yq &> /dev/null; then
-            wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            chmod +x /usr/local/bin/yq
-          fi
           
           if yq '.services | has("'$NAME'")' docker-compose.yml | grep -q 'true'; then
             yq -i ".services.$NAME.image = \"$IMAGE_TAG\"" docker-compose.yml
@@ -159,22 +132,26 @@ jobs:
         EOF
         
         chmod +x update-compose.sh
-        sudo apt-get update && sudo apt-get install -y wget
-        DOCKER_USERNAME="${{ steps.lowercase.outputs.docker_username }}" ./update-compose.sh
+        DOCKER_USERNAME="${{ steps.deploy-vars.outputs.docker_username }}" ./update-compose.sh
     
-    - name: Create project directory on VPS
+    - name: Deploy to VPS
+      env:
+        PROJECT_DIR: ${{ steps.deploy-vars.outputs.repo_name }}
+        VPS_USER: ${{ secrets.VPS_USER }}
+        VPS_IP: ${{ secrets.VPS_IP }}
+        SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
       run: |
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "mkdir -p ~/${{ steps.project-dir.outputs.dir_name }}"
-    
-    - name: Copy files to VPS
-      run: |
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null .env ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/.env
+        # Create project directory
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh $SSH_OPTS -t $VPS_USER@$VPS_IP "mkdir -p ~/$PROJECT_DIR"
+        
+        # Copy files to VPS
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS docker-compose.yml $VPS_USER@$VPS_IP:~/$PROJECT_DIR/
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS .env $VPS_USER@$VPS_IP:~/$PROJECT_DIR/.env
         
         if [ -d "config" ]; then
-          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r config ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/${{ steps.project-dir.outputs.dir_name }}/
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS -r config $VPS_USER@$VPS_IP:~/$PROJECT_DIR/
         fi
-    
-    - name: Deploy on VPS
-      run: |
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && source .env && docker compose down || true && docker compose pull && docker compose up -d && docker image prune -f"
+        
+        # Deploy
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh $SSH_OPTS -t $VPS_USER@$VPS_IP \
+          "cd ~/$PROJECT_DIR && source .env && docker compose down || true && docker compose pull && docker compose up -d && docker image prune -f"
