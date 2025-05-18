@@ -124,10 +124,17 @@ jobs:
         ENVIRONMENT=production
         EOF
         
-        for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
-          value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
+        # Write secrets to a temporary file to avoid shell escaping issues
+        echo '${{ toJSON(secrets) }}' > secrets.json
+        
+        # Process each secret from the file
+        for secret in $(jq -r 'keys[]' secrets.json); do
+          value=$(jq -r --arg key "$secret" '.[$key]' secrets.json)
           echo "$secret=$value" >> .env
         done
+        
+        # Remove temporary secrets file
+        rm secrets.json
     
     - name: Update docker-compose with new image tags
       run: |
