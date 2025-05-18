@@ -141,17 +141,17 @@ jobs:
         VPS_IP: ${{ secrets.VPS_IP }}
         SSH_OPTS: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
       run: |
-        # Create project directory
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh $SSH_OPTS -t $VPS_USER@$VPS_IP "mkdir -p ~/$PROJECT_DIR"
+        # Create deployments directory structure
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh $SSH_OPTS -t $VPS_USER@$VPS_IP "mkdir -p ~/deployments/$PROJECT_DIR"
         
         # Copy files to VPS
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS docker-compose.yml $VPS_USER@$VPS_IP:~/$PROJECT_DIR/
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS .env $VPS_USER@$VPS_IP:~/$PROJECT_DIR/.env
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS docker-compose.yml $VPS_USER@$VPS_IP:~/deployments/$PROJECT_DIR/
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS .env $VPS_USER@$VPS_IP:~/deployments/$PROJECT_DIR/.env
         
         if [ -d "config" ]; then
-          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS -r config $VPS_USER@$VPS_IP:~/$PROJECT_DIR/
+          sshpass -p "${{ secrets.VPS_PASSWORD }}" scp $SSH_OPTS -r config $VPS_USER@$VPS_IP:~/deployments/$PROJECT_DIR/
         fi
         
         # Deploy
         sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh $SSH_OPTS -t $VPS_USER@$VPS_IP \
-          "cd ~/$PROJECT_DIR && source .env && docker compose down || true && docker compose pull && docker compose up -d && docker image prune -f"
+          "cd ~/deployments/$PROJECT_DIR && source .env && docker compose down || true && docker compose pull && docker compose up -d && docker image prune -f"
