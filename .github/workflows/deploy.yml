@@ -7,12 +7,8 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write
-
 env:
-  DOCKER_REGISTRY: ghcr.io
+  DOCKER_REGISTRY: docker.io
   CONFIG_FILE: .github/build-config.json
 
 jobs:
@@ -55,26 +51,27 @@ jobs:
       run: |
         OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
+        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
         SHORT_HASH=$(echo "${{ github.sha }}" | cut -c1-7)
         
         echo "owner=$OWNER_LOWERCASE" >> $GITHUB_OUTPUT
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
+        echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
         echo "short_hash=$SHORT_HASH" >> $GITHUB_OUTPUT
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     
-    - name: Login to GitHub Container Registry
+    - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
-        registry: ${{ env.DOCKER_REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
     
     - name: Create image tag
       id: image-info
       run: |
-        TAG="${{ env.DOCKER_REGISTRY }}/${{ steps.lowercase.outputs.owner }}/${{ matrix.service.name }}:latest"
+        TAG="${{ steps.lowercase.outputs.docker_username }}/${{ matrix.service.name }}:latest"
         echo "tag=$TAG" >> $GITHUB_OUTPUT
     
     - name: Build and push Docker image for ${{ matrix.service.name }}
@@ -103,7 +100,7 @@ jobs:
       id: lowercase
       run: |
         REPO_NAME=$(echo "${{ github.repository }}" | cut -d '/' -f 2 | tr '[:upper:]' '[:lower:]')
-        OWNER_LOWERCASE=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        DOCKER_USERNAME=$(echo "${{ secrets.DOCKER_USERNAME }}" | tr '[:upper:]' '[:lower:]')
         echo "repo_name=$REPO_NAME" >> $GITHUB_OUTPUT
         echo "docker_username=$DOCKER_USERNAME" >> $GITHUB_OUTPUT
         echo "service_names=${{ needs.prepare.outputs.service_names }}" >> $GITHUB_OUTPUT
@@ -120,14 +117,11 @@ jobs:
     - name: Create .env file for deployment
       run: |
         cat > .env << EOF
-        DOCKER_REGISTRY=${{ env.DOCKER_REGISTRY }}
-        GITHUB_OWNER=${{ steps.lowercase.outputs.owner }}
+        DOCKER_USERNAME=${{ steps.lowercase.outputs.docker_username }}
         PROJECT_NAME=${{ steps.lowercase.outputs.repo_name }}
         IMAGE_TAG=latest
         INSTANCE_NAME=${{ steps.lowercase.outputs.repo_name }}
         ENVIRONMENT=production
-        # Add GitHub token for registry authentication
-        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
         EOF
         
         EXCLUDED_SECRETS="DOCKER_USERNAME DOCKER_TOKEN GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
@@ -182,19 +176,4 @@ jobs:
     
     - name: Deploy on VPS
       run: |
-        cat > deploy.sh << 'EOF'
-        #!/bin/bash
-        set -e
-        
-        cd ~/$1
-        source .env
-        
-        docker compose down || true
-        docker compose pull
-        docker compose up -d
-        docker image prune -f
-        EOF
-        
-        chmod +x deploy.sh
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null deploy.sh ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }}:~/deploy.sh
-        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "bash ~/deploy.sh ${{ steps.project-dir.outputs.dir_name }}"
+        sshpass -p "${{ secrets.VPS_PASSWORD }}" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -t ${{ secrets.VPS_USER }}@${{ secrets.VPS_IP }} "cd ~/${{ steps.project-dir.outputs.dir_name }} && source .env && docker compose down || true && docker compose pull && docker compose up -d && docker image prune -f"
