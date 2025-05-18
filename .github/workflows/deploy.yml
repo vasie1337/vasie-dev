@@ -124,13 +124,7 @@ jobs:
         ENVIRONMENT=production
         EOF
         
-        EXCLUDED_SECRETS="DOCKER_USERNAME DOCKER_TOKEN GITHUB_TOKEN SSH_PRIVATE_KEY VPS_IP VPS_USER"
-        
         for secret in $(echo "${{ toJSON(secrets) }}" | jq -r 'keys[]'); do
-          if [[ " $EXCLUDED_SECRETS " == *" $secret "* ]]; then
-            continue
-          fi
-          
           value=$(echo "${{ toJSON(secrets) }}" | jq -r --arg key "$secret" '.[$key]')
           echo "$secret=$value" >> .env
         done
