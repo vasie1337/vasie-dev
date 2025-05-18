@@ -74,7 +74,7 @@ jobs:
     - name: Create image tag
       id: image-info
       run: |
-        TAG="${{ steps.lowercase.outputs.docker_username }}/${{ matrix.service.name }}:latest"
+        TAG="${{ env.DOCKER_REGISTRY }}/${{ steps.lowercase.outputs.owner }}/${{ matrix.service.name }}:latest"
         echo "tag=$TAG" >> $GITHUB_OUTPUT
     
     - name: Build and push Docker image for ${{ matrix.service.name }}
