@@ -17,17 +17,16 @@ const { title = "vasie.dev" } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
 		
-		<!-- Optimized font loading for better performance -->
+		<!-- Preload font files for better performance -->
+		<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" as="style" />
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		
-		<!-- Preload critical font with higher priority -->
-		<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-		<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap"></noscript>
+		<!-- Load variable font with full weight range -->
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 		
-		<!-- DNS prefetch for potential external resources -->
-		<link rel="dns-prefetch" href="//fonts.googleapis.com">
-		<link rel="dns-prefetch" href="//fonts.gstatic.com">
+		<!-- Optional: Add a secondary font for variety -->
+		<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&display=swap" rel="stylesheet">
 	</head>
 	<body class="bg-[#050505] text-white min-h-screen">
 		<div class="page-transition-wrapper">
