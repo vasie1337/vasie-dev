@@ -1,44 +1,36 @@
-# vasie-dev
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A modern, containerized portfolio website showcasing expertise in low-level programming, system optimization, and kernel development. The portfolio is deployed using Docker and Cloudflare Tunnels for secure, reliable access.
+## Getting Started
 
-## Technical Architecture
+First, run the development server:
 
-### Docker Setup
-The application is containerized using Docker Compose with two main services:
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-1. **Portfolio Service**
-   - Runs the main portfolio application
-   - Uses environment variables for configuration
-   - Persists data using Docker volumes
-   - Automatically restarts on failure
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-2. **Cloudflared Service**
-   - Manages secure tunnel connection to Cloudflare
-   - Provides secure access to the portfolio
-   - Uses Cloudflare Tunnel token for authentication
-   - Ensures reliable connectivity
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Deployment
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The portfolio is deployed using a secure Cloudflare Tunnel setup, which provides:
-- Secure HTTPS access
-- DDoS protection
-- Global CDN distribution
-- Zero-trust security model
+## Learn More
 
-## Environment Variables
+To learn more about Next.js, take a look at the following resources:
 
-The following environment variables are required for deployment:
-- `DOCKER_REGISTRY`: Docker registry URL
-- `GITHUB_OWNER`: GitHub username/organization
-- `INSTANCE_NAME`: Unique instance identifier
-- `ENVIRONMENT`: Deployment environment (e.g., production)
-- `CLOUDFLARE_TUNNEL_TOKEN`: Cloudflare tunnel authentication token
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Technologies
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- Docker & Docker Compose for containerization
-- Cloudflare Tunnels for secure access
-- Modern web technologies for the frontend
-- JSON-based content management 
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
