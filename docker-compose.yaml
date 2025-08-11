@@ -1,6 +1,0 @@
-services:
-  portfolio:
-    image: ${DOCKER_REGISTRY}/${GITHUB_OWNER}/portfolio:latest
-    restart: always
-    environment:
-      - NODE_ENV=${ENVIRONMENT}
