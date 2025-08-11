@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="500 — Server error">
+  <main class="flex min-h-screen items-center justify-center">
+    <section class="relative z-10 px-6 py-24 text-center">
+      <p class="text-sm uppercase tracking-wider text-white/50">Error 500</p>
+      <h1 class="mt-2 text-6xl md:text-7xl font-light">Something went wrong</h1>
+      <p class="mt-4 max-w-xl mx-auto text-white/60">
+        An unexpected error occurred. Please try again in a moment.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="/" class="inline-flex items-center rounded border border-white/10 px-4 py-2 transition hover:-translate-y-0.5 hover:border-white/20">
+          Go to homepage
+        </a>
+      </div>
+    </section>
+  </main>
+</Layout>
