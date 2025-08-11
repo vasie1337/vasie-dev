@@ -39,69 +39,68 @@ const { title = "vasie.dev" } = Astro.props;
 				<div class="w-full h-full rounded-full border-2 border-white/10 border-t-white/80 animate-spin"></div>
 			</div>
 		</div>
+
+		<script is:inline>
+			(function() {
+				const hideLoader = () => {
+					const loader = document.getElementById('page-loader');
+					if (!loader) return;
+					loader.style.opacity = '0';
+					setTimeout(() => {
+						loader.style.display = 'none';
+					}, 700);
+				};
+
+				const fixLinkClickability = () => {
+					const allLinks = document.querySelectorAll('a');
+					allLinks.forEach(link => {
+						if (!link.classList.contains('cursor-pointer')) {
+							link.classList.add('cursor-pointer');
+						}
+						if (!link.style.position) {
+							link.style.position = 'relative';
+						}
+						if (!link.style.zIndex) {
+							link.style.zIndex = '10';
+						}
+						link.addEventListener('click', (e) => {
+							e.stopPropagation();
+						});
+					});
+
+					const overlays = document.querySelectorAll('.absolute, .fixed');
+					overlays.forEach(overlay => {
+						if (!overlay.closest('a') && !overlay.querySelector('a')) {
+							if (!overlay.classList.contains('pointer-events-none')) {
+								overlay.classList.add('pointer-events-none');
+							}
+						}
+					});
+				};
+
+				if (document.readyState === 'complete' || document.readyState === 'interactive') {
+					hideLoader();
+					fixLinkClickability();
+				} else {
+					document.addEventListener('DOMContentLoaded', () => {
+						hideLoader();
+						fixLinkClickability();
+					});
+				}
+
+				window.addEventListener('load', hideLoader);
+
+				const observer = new MutationObserver(() => {
+					fixLinkClickability();
+				});
+				observer.observe(document.body, { childList: true, subtree: true });
+
+				// Fallback: ensure the loader goes away even if load events misfire
+				setTimeout(hideLoader, 3000);
+			})();
+		</script>
 	</body>
 </html>
-
-<script>
-	// Simple page loading effect
-	window.addEventListener('load', () => {
-		const loader = document.getElementById('page-loader');
-		if (loader) {
-			loader.style.opacity = '0';
-			setTimeout(() => {
-				loader.style.display = 'none';
-			}, 700);
-		}
-		
-		// Fix for link clickability issues
-		const fixLinkClickability = () => {
-			// Add cursor pointer to all links
-			const allLinks = document.querySelectorAll('a');
-			allLinks.forEach(link => {
-				if (!link.classList.contains('cursor-pointer')) {
-					link.classList.add('cursor-pointer');
-				}
-				
-				// Ensure relative positioning and z-index
-				if (!link.style.position) {
-					link.style.position = 'relative';
-				}
-				if (!link.style.zIndex) {
-					link.style.zIndex = '10';
-				}
-				
-				// Prevent event propagation on links
-				link.addEventListener('click', (e) => {
-					e.stopPropagation();
-				});
-			});
-			
-			// Make sure overlays and decorative elements don't block links
-			const overlays = document.querySelectorAll('.absolute, .fixed');
-			overlays.forEach(overlay => {
-				if (!overlay.closest('a') && !overlay.querySelector('a')) {
-					if (!overlay.classList.contains('pointer-events-none')) {
-						overlay.classList.add('pointer-events-none');
-					}
-				}
-			});
-		};
-		
-		// Run initially and whenever DOM content might change
-		fixLinkClickability();
-		
-		// Create a mutation observer to watch for DOM changes
-		const observer = new MutationObserver(() => {
-			fixLinkClickability();
-		});
-		
-		// Start observing the document with the configured parameters
-		observer.observe(document.body, { 
-			childList: true, 
-			subtree: true 
-		});
-	});
-</script>
 
 <style is:global>
 	:root {
