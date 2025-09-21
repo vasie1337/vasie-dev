@@ -1,9 +1,0 @@
-{
-    "services": [
-      {
-        "name": "portfolio",
-        "dockerfile": "./Dockerfile",
-        "context": "./"
-      }
-    ]
-  }
