@@ -62,11 +62,32 @@ const portfolioData = {
   ],
   projects: [
     {
+      title: "bin-obfuscator",
+      category: "Binary Security Tool",
+      description: "x86-64 PE binary obfuscator written in Rust. Features advanced obfuscation techniques for Windows executables including control flow obfuscation and anti-analysis measures.",
+      technologies: ["Rust", "Assembly", "x86-64", "PE Format"],
+      githubUrl: "https://github.com/Vasie1337/bin-obfuscator"
+    },
+    {
+      title: "cheat-framework",
+      category: "Game Development Framework",
+      description: "Monorepo for game cheats with shared framework and adapter-based system access. Demonstrates advanced memory manipulation techniques and modular architecture design.",
+      technologies: ["C++", "Memory Management", "DMA", "External APIs"],
+      githubUrl: "https://github.com/Vasie1337/cheat-framework"
+    },
+    {
       title: "kernel-anticheat",
       category: "Windows Kernel Development",
       description: "A Windows kernel-mode driver designed to detect and prevent game cheats. Implements advanced detection mechanisms and security features to maintain game integrity at the kernel level.",
       technologies: ["C++", "Windows Kernel", "Driver Development"],
       githubUrl: "https://github.com/Vasie1337/kernel-anticheat"
+    },
+    {
+      title: "sharedsection-driver",
+      category: "Kernel Communication",
+      description: "A Windows kernel driver that demonstrates efficient communication between kernel and user mode using shared memory sections and threading, showcasing advanced Windows driver development techniques.",
+      technologies: ["C++", "Windows Kernel", "Shared Memory"],
+      githubUrl: "https://github.com/Vasie1337/sharedsection-driver"
     },
     {
       title: "weather-api",
@@ -76,11 +97,11 @@ const portfolioData = {
       githubUrl: "https://github.com/Vasie1337/weather-api"
     },
     {
-      title: "sharedsection-driver",
-      category: "Kernel Communication",
-      description: "A Windows kernel driver that demonstrates efficient communication between kernel and user mode using shared memory sections and threading, showcasing advanced Windows driver development techniques.",
-      technologies: ["C++", "Windows Kernel", "Shared Memory"],
-      githubUrl: "https://github.com/Vasie1337/sharedsection-driver"
+      title: "todo-app",
+      category: "REST API Development",
+      description: "A modern todo REST API built with Rust and Actix Web, featuring SQLite database integration and clean architecture patterns for high-performance web services.",
+      technologies: ["Rust", "Actix Web", "SQLite", "REST API"],
+      githubUrl: "https://github.com/Vasie1337/todo-app"
     },
     {
       title: "driver-remapper",
@@ -95,13 +116,6 @@ const portfolioData = {
       description: "A tool for parsing and visualizing Counter-Strike 2 physics files (.vmdl). Extracts collision meshes from CS2 maps and renders them in a 3D environment, useful for game analysis and development.",
       technologies: ["C++", "DirectX 11", "3D Rendering"],
       githubUrl: "https://github.com/Vasie1337/cs2-parser"
-    },
-    {
-      title: "todo-app",
-      category: "Todo API",
-      description: "A simple todo api built with Rust and Actix Web",
-      technologies: ["Rust", "Actix Web"],
-      githubUrl: "https://github.com/Vasie1337/todo-app"
     }
   ],
   contact: {
