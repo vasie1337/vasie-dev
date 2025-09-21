@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useParallax, useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
+import OptimizedWallpaper from "@/components/OptimizedWallpaper";
 
 const portfolioData = {
   hero: {
@@ -140,13 +141,10 @@ export default function Home() {
       </div>
       
       <div className={`min-h-screen bg-black relative overflow-hidden parallax-container scroll-smooth page-container ${isPageLoaded ? 'page-loaded' : ''}`}>
-        <div
-          ref={parallaxRef as React.RefObject<HTMLDivElement>}
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none parallax-layer"
+        <OptimizedWallpaper 
+          className="absolute inset-0 pointer-events-none parallax-layer"
           style={{
-            backgroundImage: 'url(/wallpaper.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            transform: `translateY(${parallaxRef.current ? parallaxRef.current.scrollTop * 0.3 : 0}px)`
           }}
         />
 
