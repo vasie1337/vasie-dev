@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Github, Mail, ExternalLink, MapPin, Users } from "lucide-react";
 import Image from "next/image";
 
@@ -10,53 +8,54 @@ const portfolioData = {
     title: "Full-Stack & Systems Engineer"
   },
   about: {
-    background: "A versatile software engineer with expertise spanning from low-level kernel development to modern web applications, passionate about performance optimization and clean architecture.",
+    background: "I'm a versatile software engineer with expertise spanning from low-level kernel development to modern web applications, passionate about performance optimization and clean architecture.",
     location: "The Netherlands"
+  },
+  sections: {
+    expertise: {
+      subtitle: "Core areas of my technical specialization"
+    },
+    projects: {
+      subtitle: "Selected work showcasing my technical capabilities"
+    },
+    technologies: {
+      subtitle: "Languages, frameworks, and tools I work with"
+    }
   },
   expertise: {
     areas: [
       {
-        title: "Rust Development",
-        description: "Modern systems programming with Rust, focusing on memory safety, concurrency, and high-performance applications.",
-        skills: [
+        "title": "Systems Programming",
+        "description": "Expertise in building efficient and safe systems using modern programming languages.",
+        "skills": [
           "Memory Safety",
-          "Async Programming",
           "Zero-Cost Abstractions",
-          "System Integration"
+          "High-Performance APIs"
         ]
       },
       {
-        title: "Go Development",
-        description: "Building scalable backend systems and microservices with Go, emphasizing simplicity and concurrent programming.",
-        skills: [
-          "Goroutines & Channels",
-          "Microservices Architecture",
-          "High-Performance APIs",
-          "System Programming"
-        ]
-      },
-      {
-        title: "Kernel Development",
-        description: "Specialized in OS kernel development, device drivers, and system-level architecture design.",
-        skills: [
+        "title": "Kernel Development",
+        "description": "Specialization in low-level system programming and architecture.",
+        "skills": [
           "Driver Development",
           "Kernel Modules",
-          "Interrupt Handling",
           "System Calls"
         ]
       },
       {
-        title: "Performance Optimization",
-        description: "Specialized in optimizing applications for maximum performance, low latency, and high throughput across multiple languages.",
-        skills: [
+        "title": "Performance Optimization",
+        "description": "Focus on enhancing application efficiency and speed.",
+        "skills": [
           "CPU/Cache Optimization",
           "Memory Profiling",
-          "Algorithmic Improvements",
           "Parallel Computing"
         ]
       }
     ]
   },
+  technologies: [
+    "Rust", "Go", "C/C++", "TypeScript", "React", "Next.js", "Node.js", "Python", "Windows Kernel", "Linux", "Docker", "Git"
+  ],
   projects: [
     {
       title: "kernel-anticheat",
@@ -140,6 +139,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
 
           <div className="md:col-span-1 space-y-6">
+            <section>
             <div className="apple-glass-strong p-6 lg:p-8 rounded-3xl lg:sticky lg:top-6">
               <div className="space-y-6">
                 <div className="flex justify-center">
@@ -193,11 +193,19 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            </section>
           </div>
 
-          <div className="md:col-span-2 lg:col-span-3 space-y-6 lg:space-y-8">
+          <div className="md:col-span-2 lg:col-span-3 space-y-8 lg:space-y-12">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <section>
+              <div className="mb-8">
+                <div className="apple-glass-strong p-6 rounded-2xl mb-6">
+                  <p className="text-white/60 text-lg">{portfolioData.sections.expertise.subtitle}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {portfolioData.expertise.areas.map((area, index) => (
                 <div key={index} className="apple-glass p-6 rounded-2xl hover:apple-glass-hover transition-all duration-300 h-full">
                   <div className="space-y-4">
@@ -218,9 +226,17 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section>
+              <div className="mb-8">
+                <div className="apple-glass-strong p-6 rounded-2xl mb-6">
+                  <p className="text-white/60 text-lg">{portfolioData.sections.projects.subtitle}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {portfolioData.projects.map((project, index) => (
                 <div key={index} className="apple-glass rounded-2xl hover:apple-glass-hover transition-all duration-300 group h-full">
                   <div className="p-6">
@@ -251,13 +267,29 @@ export default function Home() {
                   </div>
                 </div>
               ))}
+              </div>
+            </section>
+
+            <section>
+              <div className="mb-8">
+                <div className="apple-glass-strong p-6 rounded-2xl mb-6">
+                  <p className="text-white/60 text-lg">{portfolioData.sections.technologies.subtitle}</p>
+                </div>
+              </div>
               
-            </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {portfolioData.technologies.map((tech, index) => (
+                  <div key={index} className="apple-glass-badge text-center py-3 px-4 rounded-lg text-white/80 hover:text-white transition-all">
+                    {tech}
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
 
-        <footer className="apple-glass mt-12 px-6 py-6 rounded-2xl text-center text-sm text-white/60 border border-white/5">
-          <p>© {getyear()} {portfolioData.contact.copyright}</p>
+        <footer className="apple-glass-strong mt-12 px-6 py-6 rounded-2xl text-center border border-white/5">
+          <p className="text-sm text-white/60">© {getyear()} {portfolioData.contact.copyright}</p>
         </footer>
       </div>
     </div>
