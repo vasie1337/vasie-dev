@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Github, Mail, ExternalLink, MapPin, Users } from "lucide-react";
+import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useParallax, useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
 
