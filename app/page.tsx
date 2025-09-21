@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useParallax, useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
-import OptimizedWallpaper from "@/components/OptimizedWallpaper";
+import LiveWallpaper from "@/components/LiveWallpaper";
 
 const portfolioData = {
   hero: {
@@ -140,15 +140,11 @@ export default function Home() {
         <div className="apple-spinner"></div>
       </div>
       
-      <div className={`min-h-screen bg-black relative overflow-hidden parallax-container scroll-smooth page-container ${isPageLoaded ? 'page-loaded' : ''}`}>
-        <OptimizedWallpaper 
-          className="absolute inset-0 pointer-events-none parallax-layer"
-          style={{
-            transform: `translateY(${parallaxRef.current ? parallaxRef.current.scrollTop * 0.3 : 0}px)`
-          }}
-        />
+      <div className={`min-h-screen relative overflow-hidden parallax-container scroll-smooth page-container ${isPageLoaded ? 'page-loaded' : ''}`}>
+        <LiveWallpaper className="absolute inset-0 pointer-events-none" />
 
-      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        {/* Reduced overlay opacity to see wallpaper better */}
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
