@@ -7,22 +7,32 @@ import Image from "next/image";
 const portfolioData = {
   hero: {
     heading: "vasie1337",
-    title: "Software Engineer"
+    title: "Full-Stack & Systems Engineer"
   },
   about: {
-    background: "A software engineer passionate about low-level programming, modular software design, and system optimization.",
+    background: "A versatile software engineer with expertise spanning from low-level kernel development to modern web applications, passionate about performance optimization and clean architecture.",
     location: "The Netherlands"
   },
   expertise: {
     areas: [
       {
-        title: "C/C++",
-        description: "Extensive experience with system-level programming, memory management, and performance optimization in C and C++.",
+        title: "Rust Development",
+        description: "Modern systems programming with Rust, focusing on memory safety, concurrency, and high-performance applications.",
         skills: [
-          "Memory Management",
-          "Performance Optimization",
-          "Multi-threading",
-          "Low-level System Programming"
+          "Memory Safety",
+          "Async Programming",
+          "Zero-Cost Abstractions",
+          "System Integration"
+        ]
+      },
+      {
+        title: "Go Development",
+        description: "Building scalable backend systems and microservices with Go, emphasizing simplicity and concurrent programming.",
+        skills: [
+          "Goroutines & Channels",
+          "Microservices Architecture",
+          "High-Performance APIs",
+          "System Programming"
         ]
       },
       {
@@ -37,7 +47,7 @@ const portfolioData = {
       },
       {
         title: "Performance Optimization",
-        description: "Specialized in optimizing applications for maximum performance, low latency, and high throughput.",
+        description: "Specialized in optimizing applications for maximum performance, low latency, and high throughput across multiple languages.",
         skills: [
           "CPU/Cache Optimization",
           "Memory Profiling",
@@ -126,11 +136,11 @@ export default function Home() {
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
 
-          <div className="lg:col-span-1 space-y-6">
-            <div className="apple-glass-strong p-6 rounded-3xl">
+          <div className="md:col-span-1 space-y-6">
+            <div className="apple-glass-strong p-6 lg:p-8 rounded-3xl lg:sticky lg:top-6">
               <div className="space-y-6">
                 <div className="flex justify-center">
                   <div className="relative">
@@ -139,14 +149,15 @@ export default function Home() {
                       alt="Profile Avatar"
                       width={120}
                       height={120}
-                      className="rounded-full ring-4 ring-white/20 ring-offset-4 ring-offset-transparent"
+                      className="rounded-full ring-4 ring-white/20 shadow-2xl"
+                      priority
                     />
                   </div>
                 </div>
 
-                <div className="text-center space-y-2">
-                  <h1 className="text-2xl font-bold text-white">{portfolioData.hero.heading}</h1>
-                  <p className="text-white/80 text-sm">{portfolioData.hero.title}</p>
+                <div className="text-center space-y-3">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white">{portfolioData.hero.heading}</h1>
+                  <p className="text-white/80 text-sm lg:text-base">{portfolioData.hero.title}</p>
                 </div>
 
                 <p className="text-sm text-white/70 leading-relaxed text-center">
@@ -154,21 +165,29 @@ export default function Home() {
                 </p>
 
                 <div className="space-y-3 text-sm text-white/70">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <MapPin className="h-4 w-4" />
                     {portfolioData.about.location}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <Mail className="h-4 w-4" />
-                    <a href="mailto:contact@vasie.dev" className="hover:text-white transition-colors">contact@vasie.dev</a>
+                    <a href="mailto:contact@vasie.dev" className="hover:text-white transition-colors">
+                      contact@vasie.dev
+                    </a>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button size="sm" asChild className="flex-1 apple-glass-badge border-0 text-white hover:apple-glass-hover transition-all">
+                <div className="flex flex-col gap-3">
+                  <Button size="sm" asChild className="w-full apple-glass-badge border-0 text-white hover:apple-glass-hover transition-all">
                     <a href="https://github.com/vasie1337" target="_blank" rel="noopener noreferrer">
                       <Github className="mr-2 h-4 w-4" />
                       GitHub
+                    </a>
+                  </Button>
+                  <Button size="sm" asChild className="w-full apple-glass-badge border-0 text-white hover:apple-glass-hover transition-all">
+                    <a href="mailto:contact@vasie.dev">
+                      <Mail className="mr-2 h-4 w-4" />
+                      Contact
                     </a>
                   </Button>
                 </div>
@@ -176,11 +195,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="lg:col-span-3 space-y-6">
+          <div className="md:col-span-2 lg:col-span-3 space-y-6 lg:space-y-8">
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {portfolioData.expertise.areas.map((area, index) => (
-                <div key={index} className="apple-glass p-6 rounded-2xl hover:apple-glass-hover transition-all duration-300">
+                <div key={index} className="apple-glass p-6 rounded-2xl hover:apple-glass-hover transition-all duration-300 h-full">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 bg-white/60 rounded-full"></div>
@@ -201,9 +220,9 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="grid gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {portfolioData.projects.map((project, index) => (
-                <div key={index} className="apple-glass rounded-2xl apple-glass-hover transition-all duration-300 group">
+                <div key={index} className="apple-glass rounded-2xl hover:apple-glass-hover transition-all duration-300 group h-full">
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="space-y-1">
@@ -237,8 +256,8 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className="apple-glass mt-8 px-6 py-4 rounded-2xl text-center text-xs text-white/60">
-          © {getyear()} {portfolioData.contact.copyright}
+        <footer className="apple-glass mt-12 px-6 py-6 rounded-2xl text-center text-sm text-white/60 border border-white/5">
+          <p>© {getyear()} {portfolioData.contact.copyright}</p>
         </footer>
       </div>
     </div>

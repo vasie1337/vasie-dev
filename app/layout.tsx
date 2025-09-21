@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "vasie1337",
-  description: "kernel | windows | web | rust | c++ | automation | self-hosting",
+  description: "kernel | rust | golang | web | full-stack | performance | automation | self-hosting",
   icons: {
     icon: "/avatar.jpg",
   },
