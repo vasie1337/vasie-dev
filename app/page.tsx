@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useParallax, useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
-import LiveWallpaper from "@/components/LiveWallpaper";
 
 const portfolioData = {
   hero: {
@@ -155,10 +154,12 @@ export default function Home() {
       </div>
       
       <div className={`min-h-screen relative overflow-hidden parallax-container scroll-smooth page-container ${isPageLoaded ? 'page-loaded' : ''}`}>
-        <LiveWallpaper className="absolute inset-0 pointer-events-none" />
+        <Image src="/wallpaper.png" 
+        alt="Wallpaper" 
+        className="absolute inset-0 w-full h-full object-cover" 
+        width={2560} height={1440} />
 
-        {/* Reduced overlay opacity to see wallpaper better */}
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
