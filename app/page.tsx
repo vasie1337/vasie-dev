@@ -161,11 +161,7 @@ export default function Home() {
 
         {/* Apple Liquid Glass Background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/30 to-pink-900/20"></div>
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/30 to-purple-600/40 rounded-full blur-3xl animate-pulse duration-[15s]"></div>
-          <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-500/25 to-red-500/35 rounded-full blur-3xl animate-pulse duration-[20s] delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-cyan-500/20 to-teal-500/30 rounded-full blur-3xl animate-pulse duration-[25s] delay-2000"></div>
-          <div className="absolute inset-0 bg-black/30"></div>
+          <div className="absolute inset-0 bg-black/40"></div>
         </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
