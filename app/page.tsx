@@ -149,68 +149,75 @@ export default function Home() {
   return (
     <>
       {/* Loading overlay */}
-      <div className={`loading-overlay ${isPageLoaded ? 'hidden' : ''}`}>
-        <div className="apple-spinner"></div>
+      <div className={`fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-[9999] transition-all duration-500 ${isPageLoaded ? 'opacity-0 invisible' : 'opacity-100 visible'}`}>
+        <div className="w-10 h-10 border-3 border-white/10 border-t-white/60 rounded-full animate-spin"></div>
       </div>
       
-      <div className={`min-h-screen relative overflow-hidden parallax-container scroll-smooth page-container ${isPageLoaded ? 'page-loaded' : ''}`}>
+      <div className={`min-h-screen relative overflow-hidden scroll-smooth transition-all duration-800 ${isPageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}>
         <Image src="/wallpaper.png" 
         alt="Wallpaper" 
         className="absolute inset-0 w-full h-full object-cover" 
         width={2560} height={1440} />
 
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        {/* Apple Liquid Glass Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/30 to-pink-900/20"></div>
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/30 to-purple-600/40 rounded-full blur-3xl animate-pulse duration-[15s]"></div>
+          <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-500/25 to-red-500/35 rounded-full blur-3xl animate-pulse duration-[20s] delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-gradient-to-r from-cyan-500/20 to-teal-500/30 rounded-full blur-3xl animate-pulse duration-[25s] delay-2000"></div>
+          <div className="absolute inset-0 bg-black/30"></div>
+        </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
 
           <div className="md:col-span-1 space-y-6">
             <section ref={heroRef as React.RefObject<HTMLElement>}>
-            <div className={`apple-glass-strong p-6 lg:p-8 rounded-3xl lg:sticky lg:top-6 ${heroVisible ? 'animate-apple-slide-left' : 'opacity-0'}`}>
+            <div className={`bg-black/20 backdrop-blur-2xl border border-white/10 p-6 lg:p-8 rounded-3xl lg:sticky lg:top-6 shadow-2xl hover:bg-black/25 hover:border-white/15 hover:shadow-3xl hover:scale-[1.02] transition-all duration-700 ease-out ${heroVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 -translate-x-10 blur-sm'}`}>
               <div className="space-y-6">
-                <div className="flex justify-center animate-apple-scale-in">
+                <div className="flex justify-center animate-in zoom-in-75 duration-1000 delay-300">
                   <div className="relative">
                     <Image
                       src="/avatar.jpg"
                       alt="Profile Avatar"
                       width={120}
                       height={120}
-                      className="rounded-full ring-4 ring-white/20 shadow-2xl apple-ease"
+                      className="rounded-full ring-4 ring-white/20 shadow-2xl transition-all duration-500 hover:ring-white/30 hover:scale-105"
                       priority
                     />
                   </div>
                 </div>
 
-                <div className="text-center space-y-3 animate-apple-fade-in-delay-1">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-white animate-text-reveal">{portfolioData.hero.heading}</h1>
-                  <p className="text-white/80 text-sm lg:text-base animate-text-reveal" style={{animationDelay: '0.1s'}}>{portfolioData.hero.title}</p>
+                <div className="text-center space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white animate-in fade-in slide-in-from-bottom-2 duration-800 delay-600">{portfolioData.hero.heading}</h1>
+                  <p className="text-white/80 text-sm lg:text-base animate-in fade-in slide-in-from-bottom-2 duration-800 delay-700">{portfolioData.hero.title}</p>
                 </div>
 
-                <p className="text-sm text-white/70 leading-relaxed text-center animate-apple-fade-in-delay-2">
+                <p className="text-sm text-white/70 leading-relaxed text-center animate-in fade-in slide-in-from-bottom-3 duration-1000 delay-800">
                   {portfolioData.about.background}
                 </p>
 
-                <div className="space-y-3 text-sm text-white/70 animate-apple-fade-in-delay-3">
-                  <div className="flex items-center justify-center gap-2 apple-ease">
+                <div className="space-y-3 text-sm text-white/70 animate-in fade-in slide-in-from-bottom-3 duration-1000 delay-900">
+                  <div className="flex items-center justify-center gap-2 transition-all duration-300 hover:text-white/90">
                     <MapPin className="h-4 w-4" />
                     {portfolioData.about.location}
                   </div>
-                  <div className="flex items-center justify-center gap-2 apple-ease">
+                  <div className="flex items-center justify-center gap-2 transition-all duration-300 hover:text-white/90">
                     <Mail className="h-4 w-4" />
-                    <a href="mailto:contact@vasie.dev" className="hover:text-white apple-ease">
+                    <a href="mailto:contact@vasie.dev" className="hover:text-white transition-colors duration-300">
                       contact@vasie.dev
                     </a>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 animate-apple-fade-in-delay-4">
-                  <Button size="sm" asChild className="w-full apple-glass-badge border-0 text-white hover:apple-glass-hover apple-button">
+                <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-1000">
+                  <Button size="sm" asChild className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:scale-105 active:scale-95 transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl">
                     <a href="https://github.com/vasie1337" target="_blank" rel="noopener noreferrer">
                       <Github className="mr-2 h-4 w-4" />
                       GitHub
                     </a>
                   </Button>
-                  <Button size="sm" asChild className="w-full apple-glass-badge border-0 text-white hover:apple-glass-hover apple-button">
+                  <Button size="sm" asChild className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:border-white/30 hover:scale-105 active:scale-95 transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl">
                     <a href="mailto:contact@vasie.dev">
                       <Mail className="mr-2 h-4 w-4" />
                       Contact
@@ -226,8 +233,8 @@ export default function Home() {
 
             <section ref={expertiseRef as React.RefObject<HTMLElement>}>
               <div className="mb-8">
-                <div className={`apple-glass-strong p-6 rounded-2xl mb-6 ${expertiseVisible ? 'animate-apple-slide-right' : 'opacity-0'}`}>
-                  <p className={`text-white/60 text-lg ${expertiseVisible ? 'animate-text-reveal' : 'opacity-0'}`}>{portfolioData.sections.expertise.subtitle}</p>
+                <div className={`bg-black/20 backdrop-blur-2xl border border-white/10 p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${expertiseVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
+                  <p className={`text-white/60 text-lg transition-all duration-800 ${expertiseVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.expertise.subtitle}</p>
                 </div>
               </div>
               
@@ -235,22 +242,22 @@ export default function Home() {
             {portfolioData.expertise.areas.map((area, index) => (
                 <div 
                   key={index} 
-                  className="apple-glass p-6 rounded-2xl hover:apple-glass-hover apple-ease h-full animate-card-stack"
+                  className="bg-black/15 backdrop-blur-xl border border-white/10 p-6 rounded-2xl hover:bg-black/20 hover:border-white/20 hover:scale-105 hover:shadow-2xl transition-all duration-500 h-full animate-in fade-in slide-in-from-bottom-8 zoom-in-95"
                   style={{animationDelay: `${0.1 + index * 0.1}s`}}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-apple-fade-in" style={{animationDelay: `${0.3 + index * 0.1}s`}}></div>
-                      <h3 className="font-semibold text-lg text-white animate-text-reveal" style={{animationDelay: `${0.2 + index * 0.1}s`}}>{area.title}</h3>
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+                      <h3 className="font-semibold text-lg text-white">{area.title}</h3>
                     </div>
-                    <p className="text-sm text-white/80 leading-relaxed animate-apple-fade-in" style={{animationDelay: `${0.4 + index * 0.1}s`}}>
+                    <p className="text-sm text-white/80 leading-relaxed">
                       {area.description}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {area.skills.map((skill, skillIndex) => (
                         <span 
                           key={skillIndex} 
-                          className="text-xs apple-glass-badge text-white/80 px-2 py-1 rounded-md apple-ease animate-apple-fade-in"
+                          className="text-xs bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 px-2 py-1 rounded-md transition-all duration-300 hover:bg-white/20 hover:scale-105"
                           style={{animationDelay: `${0.5 + index * 0.1 + skillIndex * 0.05}s`}}
                         >
                           {skill}
@@ -265,8 +272,8 @@ export default function Home() {
 
             <section ref={projectsRef as React.RefObject<HTMLElement>}>
               <div className="mb-8">
-                <div className={`apple-glass-strong p-6 rounded-2xl mb-6 ${projectsVisible ? 'animate-apple-slide-right' : 'opacity-0'}`}>
-                  <p className={`text-white/60 text-lg ${projectsVisible ? 'animate-text-reveal' : 'opacity-0'}`}>{portfolioData.sections.projects.subtitle}</p>
+                <div className={`bg-black/20 backdrop-blur-2xl border border-white/10 p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${projectsVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
+                  <p className={`text-white/60 text-lg transition-all duration-800 ${projectsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.projects.subtitle}</p>
                 </div>
               </div>
               
@@ -274,32 +281,32 @@ export default function Home() {
             {portfolioData.projects.map((project, index) => (
                 <div 
                   key={index} 
-                  className="apple-glass rounded-2xl hover:apple-glass-hover apple-ease group h-full animate-card-stack"
+                  className="bg-black/15 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-black/20 hover:border-white/20 hover:scale-105 hover:shadow-2xl transition-all duration-500 group h-full animate-in fade-in slide-in-from-bottom-8 zoom-in-95"
                   style={{animationDelay: `${0.2 + index * 0.1}s`}}
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="space-y-1">
-                        <h3 className="text-lg font-semibold text-white animate-text-reveal" style={{animationDelay: `${0.3 + index * 0.1}s`}}>{project.title}</h3>
-                        <p className="text-xs text-white/60 font-mono uppercase tracking-wider animate-apple-fade-in" style={{animationDelay: `${0.4 + index * 0.1}s`}}>
+                        <h3 className="text-lg font-semibold text-white">{project.title}</h3>
+                        <p className="text-xs text-white/60 font-mono uppercase tracking-wider">
                           {project.category}
                         </p>
                       </div>
-                      <button className="apple-glass-badge text-white/70 hover:text-white apple-ease border-0 p-2 rounded-lg apple-button animate-apple-scale-in" style={{animationDelay: `${0.5 + index * 0.1}s`}}>
+                      <button className="bg-white/10 backdrop-blur-sm border border-white/20 text-white/70 hover:text-white hover:bg-white/20 hover:border-white/30 hover:scale-110 active:scale-95 transition-all duration-300 p-2 rounded-lg shadow-md">
                         <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </button>
                     </div>
 
-                    <p className="text-sm text-white/80 mb-4 leading-relaxed animate-apple-fade-in" style={{animationDelay: `${0.6 + index * 0.1}s`}}>
+                    <p className="text-sm text-white/80 mb-4 leading-relaxed">
                       {project.description}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {project.technologies.map((tech, techIndex) => (
                         <span 
                           key={techIndex} 
-                          className="text-xs apple-glass-badge text-white/80 px-2 py-1 rounded-md apple-ease animate-apple-fade-in"
+                          className="text-xs bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 px-2 py-1 rounded-md transition-all duration-300 hover:bg-white/20 hover:scale-105"
                           style={{animationDelay: `${0.7 + index * 0.1 + techIndex * 0.03}s`}}
                         >
                           {tech}
@@ -314,8 +321,8 @@ export default function Home() {
 
             <section ref={techRef as React.RefObject<HTMLElement>}>
               <div className="mb-8">
-                <div className={`apple-glass-strong p-6 rounded-2xl mb-6 ${techVisible ? 'animate-apple-slide-right' : 'opacity-0'}`}>
-                  <p className={`text-white/60 text-lg ${techVisible ? 'animate-text-reveal' : 'opacity-0'}`}>{portfolioData.sections.technologies.subtitle}</p>
+                <div className={`bg-black/20 backdrop-blur-2xl border border-white/10 p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${techVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
+                  <p className={`text-white/60 text-lg transition-all duration-800 ${techVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.technologies.subtitle}</p>
                 </div>
               </div>
               
@@ -323,7 +330,7 @@ export default function Home() {
                 {portfolioData.technologies.map((tech, index) => (
                   <div 
                     key={index} 
-                    className="apple-glass-badge text-center py-3 px-4 rounded-lg text-white/80 hover:text-white apple-ease animate-apple-fade-in"
+                    className="bg-white/10 backdrop-blur-sm border border-white/20 text-center py-3 px-4 rounded-lg text-white/80 hover:text-white hover:bg-white/20 hover:border-white/30 hover:scale-110 transition-all duration-300 animate-in fade-in zoom-in-95"
                     style={{animationDelay: `${0.1 + index * 0.05}s`}}
                   >
                     {tech}
@@ -334,8 +341,8 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className="apple-glass-strong mt-12 px-6 py-6 rounded-2xl text-center border border-white/5 animate-apple-slide-up">
-          <p className="text-sm text-white/60 animate-text-reveal" style={{animationDelay: '0.2s'}}>© {getyear()} {portfolioData.contact.copyright}</p>
+        <footer className="bg-black/20 backdrop-blur-2xl border border-white/10 mt-12 px-6 py-6 rounded-2xl text-center shadow-xl animate-in slide-in-from-bottom-4 fade-in duration-1000 delay-1500">
+          <p className="text-sm text-white/60">© {getyear()} {portfolioData.contact.copyright}</p>
         </footer>
       </div>
     </div>
