@@ -1,14 +1,8 @@
 services:
   vasie-dev:
-    # Use this for production (pulls from registry)
-    # For GHCR: ghcr.io/USERNAME/REPO:tag
-    image: ${IMAGE_NAME:-ghcr.io/vasie/vasie-dev}:${IMAGE_TAG:-latest}
-    
-    # Uncomment below for local development (builds from source)
-    # build:
-    #   context: .
-    #   dockerfile: DockerFile
-    
+    build:
+      context: .
+      dockerfile: DockerFile
     ports:
       - "3000:3000"
     environment:
