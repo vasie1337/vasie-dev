@@ -1,8 +1,13 @@
 services:
   vasie-dev:
-    build:
-      context: .
-      dockerfile: DockerFile
+    # Use this for production (pulls from registry)
+    image: ${DOCKER_REGISTRY:-docker.io}/${DOCKER_IMAGE_NAME:-vasie-dev}:${IMAGE_TAG:-latest}
+    
+    # Uncomment below for local development (builds from source)
+    # build:
+    #   context: .
+    #   dockerfile: DockerFile
+    
     ports:
       - "3000:3000"
     environment:
