@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
 import Image from "next/image";
-import { useParallax, useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
+import { useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
 
 const portfolioData = {
   hero: {
@@ -139,7 +139,6 @@ export default function Home() {
     return new Date().getFullYear();
   }
 
-  const parallaxRef = useParallax(0.3);
   const { ref: heroRef, isVisible: heroVisible } = useScrollAnimation();
   const { ref: expertiseRef, isVisible: expertiseVisible } = useScrollAnimation();
   const { ref: projectsRef, isVisible: projectsVisible } = useScrollAnimation();
