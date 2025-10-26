@@ -1,7 +1,8 @@
 services:
   vasie-dev:
     # Use this for production (pulls from registry)
-    image: ${DOCKER_REGISTRY:-docker.io}/${DOCKER_IMAGE_NAME:-vasie-dev}:${IMAGE_TAG:-latest}
+    # For GHCR: ghcr.io/USERNAME/REPO:tag
+    image: ${IMAGE_NAME:-ghcr.io/vasie/vasie-dev}:${IMAGE_TAG:-latest}
     
     # Uncomment below for local development (builds from source)
     # build:

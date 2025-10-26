@@ -14,7 +14,7 @@ on:
 
 env:
   # Change these values for your registry
-  REGISTRY: docker.io  # Use 'ghcr.io' for GitHub Container Registry
+  REGISTRY: ghcr.io  # GitHub Container Registry
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
