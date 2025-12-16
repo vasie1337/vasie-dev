@@ -153,14 +153,9 @@ export default function Home() {
       </div>
       
       <div className={`min-h-screen relative overflow-hidden scroll-smooth transition-all duration-800 ${isPageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}>
-        <Image src="/wallpaper.png" 
-        alt="Wallpaper" 
-        className="absolute inset-0 w-full h-full object-cover" 
-        width={2560} height={1440} />
-
         {/* Apple Liquid Glass Background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="absolute inset-0 bg-black"></div>
         </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-12 relative z-10">
