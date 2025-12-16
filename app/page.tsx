@@ -9,30 +9,30 @@ import { useState, useEffect } from "react";
 const themeConfig = {
   light: {
     bgGradient: {
-      from: 'from-blue-50',
-      via: 'via-purple-50',
-      to: 'to-pink-50'
+      from: 'from-gray-50',
+      via: 'via-gray-50',
+      to: 'to-gray-50'
     },
     blobs: {
-      primary: 'from-blue-400/20 to-purple-400/20',
-      secondary: 'from-purple-400/20 to-pink-400/20',
-      tertiary: 'from-pink-400/20 to-blue-400/20'
+      primary: 'from-blue-400/10 to-purple-400/10',
+      secondary: 'from-purple-400/10 to-pink-400/10',
+      tertiary: 'from-pink-400/10 to-blue-400/10'
     },
     card: {
-      bg: 'bg-white/40',
-      border: 'border-white/60',
-      hoverBg: 'hover:bg-white/50',
-      hoverBorder: 'hover:border-white/70'
+      bg: 'bg-white/60',
+      border: 'border-gray-200',
+      hoverBg: 'hover:bg-white/80',
+      hoverBorder: 'hover:border-gray-300'
     },
     text: {
       primary: 'text-gray-900',
-      secondary: 'text-gray-700',
-      muted: 'text-gray-600'
+      secondary: 'text-gray-600',
+      muted: 'text-gray-500'
     },
     accent: {
-      primary: 'purple',
-      secondary: 'blue',
-      ring: 'ring-purple-400/20 hover:ring-purple-400/30'
+      primary: 'gray',
+      secondary: 'gray',
+      ring: 'ring-gray-200 hover:ring-gray-300'
     }
   },
   dark: {
@@ -42,25 +42,25 @@ const themeConfig = {
       to: 'to-black'
     },
     blobs: {
-      primary: 'from-blue-600/20 to-purple-600/20',
-      secondary: 'from-purple-600/20 to-pink-600/20',
-      tertiary: 'from-pink-600/20 to-blue-600/20'
+      primary: 'from-blue-500/8 to-purple-500/8',
+      secondary: 'from-purple-500/8 to-pink-500/8',
+      tertiary: 'from-pink-500/8 to-blue-500/8'
     },
     card: {
-      bg: 'bg-white/5',
-      border: 'border-white/10',
-      hoverBg: 'hover:bg-white/10',
-      hoverBorder: 'hover:border-white/20'
+      bg: 'bg-white/[0.02]',
+      border: 'border-white/[0.05]',
+      hoverBg: 'hover:bg-white/[0.04]',
+      hoverBorder: 'hover:border-white/10'
     },
     text: {
       primary: 'text-white',
-      secondary: 'text-gray-200',
-      muted: 'text-gray-400'
+      secondary: 'text-gray-400',
+      muted: 'text-gray-500'
     },
     accent: {
-      primary: 'purple',
-      secondary: 'blue',
-      ring: 'ring-purple-400/20 hover:ring-purple-400/30'
+      primary: 'gray',
+      secondary: 'gray',
+      ring: 'ring-white/5 hover:ring-white/10'
     }
   }
 };
@@ -223,8 +223,8 @@ export default function Home() {
 
   return (
     <>
-      <div className={`fixed inset-0 bg-gradient-to-br ${theme.bgGradient.from} ${theme.bgGradient.via} ${theme.bgGradient.to} backdrop-blur-xl flex items-center justify-center z-[9999] transition-all duration-500 ${isPageLoaded ? 'opacity-0 invisible' : 'opacity-100 visible'}`}>
-        <div className={`w-10 h-10 border-3 ${isDark ? 'border-gray-900 border-t-purple-400' : 'border-purple-200 border-t-purple-600'} rounded-full animate-spin`}></div>
+      <div className={`fixed inset-0 bg-gradient-to-br ${theme.bgGradient.from} ${theme.bgGradient.via} ${theme.bgGradient.to} flex items-center justify-center z-[9999] transition-all duration-300 ${isPageLoaded ? 'opacity-0 invisible' : 'opacity-100 visible'}`}>
+        <div className={`w-8 h-8 border-2 ${isDark ? 'border-white/10 border-t-white/40' : 'border-gray-200 border-t-gray-600'} rounded-full animate-spin`}></div>
       </div>
 
       <div className={`min-h-screen relative overflow-hidden scroll-smooth transition-all duration-800 ${isPageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}>
@@ -241,7 +241,7 @@ export default function Home() {
 
           <div className="md:col-span-1 space-y-6">
             <section ref={heroRef as React.RefObject<HTMLElement>}>
-            <div className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-2xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 lg:p-8 rounded-3xl lg:sticky lg:top-6 shadow-2xl hover:shadow-3xl hover:scale-[1.02] transition-all duration-700 ease-out ${heroVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 -translate-x-10 blur-sm'}`}>
+            <div className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 lg:p-8 rounded-2xl lg:sticky lg:top-6 transition-all duration-300 ${heroVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 -translate-x-10 blur-sm'}`}>
               <div className="space-y-6">
                 <div className="flex justify-center animate-in zoom-in-75 duration-1000 delay-300">
                   <div className="relative">
@@ -250,7 +250,7 @@ export default function Home() {
                       alt="Profile Avatar"
                       width={120}
                       height={120}
-                      className={`rounded-full ring-4 ${theme.accent.ring} shadow-2xl transition-all duration-500 hover:scale-105`}
+                      className={`rounded-full ring-2 ${theme.accent.ring} transition-all duration-300`}
                       priority
                     />
                   </div>
@@ -278,14 +278,14 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-1000">
-                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} hover:scale-105 active:scale-95 transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl`}>
+                <div className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-1000">
+                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} transition-all duration-200 rounded-lg`}>
                     <a href="https://github.com/vasie1337" target="_blank" rel="noopener noreferrer">
                       <Github className="mr-2 h-4 w-4" />
                       GitHub
                     </a>
                   </Button>
-                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} hover:scale-105 active:scale-95 transition-all duration-300 rounded-xl shadow-lg hover:shadow-xl`}>
+                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} transition-all duration-200 rounded-lg`}>
                     <a href="mailto:contact@vasie.dev">
                       <Mail className="mr-2 h-4 w-4" />
                       Contact
@@ -300,24 +300,18 @@ export default function Home() {
           <div className="md:col-span-2 lg:col-span-3 space-y-8 lg:space-y-12">
 
             <section ref={expertiseRef as React.RefObject<HTMLElement>}>
-              <div className="mb-8">
-                <div className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-2xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${expertiseVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
-                  <p className={`${theme.text.secondary} text-lg transition-all duration-800 ${expertiseVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.expertise.subtitle}</p>
-                </div>
+              <div className="mb-6">
+                <p className={`${theme.text.secondary} text-base transition-all duration-300 ${expertiseVisible ? 'opacity-100' : 'opacity-0'}`}>{portfolioData.sections.expertise.subtitle}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {portfolioData.expertise.areas.map((area, index) => (
                 <div
                   key={index}
-                  className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 rounded-2xl hover:scale-105 hover:shadow-2xl transition-all duration-500 h-full animate-in fade-in slide-in-from-bottom-8 zoom-in-95`}
-                  style={{animationDelay: `${0.1 + index * 0.1}s`}}
+                  className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-xl border ${theme.card.border} ${theme.card.hoverBorder} p-5 rounded-xl transition-all duration-200 h-full`}
                 >
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 bg-${theme.accent.primary}-500 rounded-full animate-pulse`}></div>
-                      <h3 className={`font-semibold text-lg ${theme.text.primary} transition-colors duration-500`}>{area.title}</h3>
-                    </div>
+                  <div className="space-y-3">
+                    <h3 className={`font-semibold text-base ${theme.text.primary} transition-colors duration-300`}>{area.title}</h3>
                     <p className={`text-sm ${theme.text.secondary} leading-relaxed transition-colors duration-500`}>
                       {area.description}
                     </p>
@@ -325,8 +319,7 @@ export default function Home() {
                       {area.skills.map((skill, skillIndex) => (
                         <span
                           key={skillIndex}
-                          className={`text-xs ${isDark ? 'bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-purple-800/30 text-gray-300 hover:from-purple-900/50 hover:to-pink-900/50' : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200 text-gray-700 hover:from-purple-200 hover:to-pink-200'} backdrop-blur-sm border px-2 py-1 rounded-md transition-all duration-300 hover:scale-105`}
-                          style={{animationDelay: `${0.5 + index * 0.1 + skillIndex * 0.05}s`}}
+                          className={`text-xs ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'} border px-2.5 py-1 rounded-md transition-colors duration-200`}
                         >
                           {skill}
                         </span>
@@ -339,32 +332,27 @@ export default function Home() {
             </section>
 
             <section ref={projectsRef as React.RefObject<HTMLElement>}>
-              <div className="mb-8">
-                <div className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-2xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${projectsVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
-                  <p className={`${theme.text.secondary} text-lg transition-all duration-800 ${projectsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.projects.subtitle}</p>
-                </div>
+              <div className="mb-6">
+                <p className={`${theme.text.secondary} text-base transition-all duration-300 ${projectsVisible ? 'opacity-100' : 'opacity-0'}`}>{portfolioData.sections.projects.subtitle}</p>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {portfolioData.projects.map((project, index) => (
                 <div
                   key={index}
-                  className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-xl border ${theme.card.border} ${theme.card.hoverBorder} rounded-2xl hover:scale-105 hover:shadow-2xl transition-all duration-500 group h-full animate-in fade-in slide-in-from-bottom-8 zoom-in-95`}
-                  style={{animationDelay: `${0.2 + index * 0.1}s`}}
+                  className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-xl border ${theme.card.border} ${theme.card.hoverBorder} rounded-xl transition-all duration-200 group h-full`}
                 >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="space-y-1">
-                        <h3 className={`text-lg font-semibold ${theme.text.primary} transition-colors duration-500`}>{project.title}</h3>
-                        <p className={`text-xs ${theme.text.muted} font-mono uppercase tracking-wider transition-colors duration-500`}>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="space-y-0.5">
+                        <h3 className={`text-base font-semibold ${theme.text.primary} transition-colors duration-300`}>{project.title}</h3>
+                        <p className={`text-xs ${theme.text.muted} transition-colors duration-300`}>
                           {project.category}
                         </p>
                       </div>
-                      <button className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-sm border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.secondary} hover:scale-110 active:scale-95 transition-all duration-300 p-2 rounded-lg shadow-md`}>
-                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </button>
+                      <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className={`${theme.text.muted} hover:${theme.text.primary} transition-colors duration-200`}>
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
                     </div>
 
                     <p className={`text-sm ${theme.text.secondary} mb-4 leading-relaxed transition-colors duration-500`}>
@@ -374,8 +362,7 @@ export default function Home() {
                       {project.technologies.map((tech, techIndex) => (
                         <span
                           key={techIndex}
-                          className={`text-xs ${isDark ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-blue-800/30 text-gray-300 hover:from-blue-900/50 hover:to-purple-900/50' : 'bg-gradient-to-r from-blue-100 to-purple-100 border-blue-200 text-gray-700 hover:from-blue-200 hover:to-purple-200'} backdrop-blur-sm border px-2 py-1 rounded-md transition-all duration-300 hover:scale-105`}
-                          style={{animationDelay: `${0.7 + index * 0.1 + techIndex * 0.03}s`}}
+                          className={`text-xs ${isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-600'} border px-2.5 py-1 rounded-md transition-colors duration-200`}
                         >
                           {tech}
                         </span>
@@ -388,18 +375,15 @@ export default function Home() {
             </section>
 
             <section ref={techRef as React.RefObject<HTMLElement>}>
-              <div className="mb-8">
-                <div className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-2xl border ${theme.card.border} ${theme.card.hoverBorder} p-6 rounded-2xl mb-6 shadow-xl transition-all duration-700 ease-out ${techVisible ? 'opacity-100 translate-x-0 blur-0' : 'opacity-0 translate-x-10 blur-sm'}`}>
-                  <p className={`${theme.text.secondary} text-lg transition-all duration-800 ${techVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>{portfolioData.sections.technologies.subtitle}</p>
-                </div>
+              <div className="mb-6">
+                <p className={`${theme.text.secondary} text-base transition-all duration-300 ${techVisible ? 'opacity-100' : 'opacity-0'}`}>{portfolioData.sections.technologies.subtitle}</p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {portfolioData.technologies.map((tech, index) => (
                   <div
                     key={index}
-                    className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-sm border ${theme.card.border} ${theme.card.hoverBorder} text-center py-3 px-4 rounded-lg ${theme.text.secondary} font-medium hover:scale-110 transition-all duration-300 animate-in fade-in zoom-in-95`}
-                    style={{animationDelay: `${0.1 + index * 0.05}s`}}
+                    className={`${theme.card.bg} ${theme.card.hoverBg} border ${theme.card.border} ${theme.card.hoverBorder} text-center py-2.5 px-3 rounded-lg ${theme.text.secondary} text-sm transition-all duration-200`}
                   >
                     {tech}
                   </div>
@@ -409,8 +393,8 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className={`${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-2xl border ${theme.card.border} ${theme.card.hoverBorder} mt-12 px-6 py-6 rounded-2xl text-center shadow-xl animate-in slide-in-from-bottom-4 fade-in duration-1000 delay-1500 transition-all duration-500`}>
-          <p className={`text-sm ${theme.text.muted} transition-colors duration-500`}>© {getyear()} {portfolioData.contact.copyright}</p>
+        <footer className={`mt-12 px-6 py-4 text-center transition-all duration-300`}>
+          <p className={`text-xs ${theme.text.muted} transition-colors duration-300`}>© {getyear()} {portfolioData.contact.copyright}</p>
         </footer>
       </div>
     </div>
