@@ -67,7 +67,7 @@ const themeConfig = {
 
 const portfolioData = {
   hero: {
-    heading: "vasie1337",
+    heading: "vasie",
     title: "Full-Stack & Systems Engineer"
   },
   about: {

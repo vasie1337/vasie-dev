@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "vasie1337",
+  title: "vasie",
   description: "kernel | rust | golang | web | full-stack | performance | automation | self-hosting",
   icons: {
     icon: "/avatar.jpg",
