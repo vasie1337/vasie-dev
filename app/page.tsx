@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Github, Mail, ExternalLink, MapPin } from "lucide-react";
+import { Github, Mail, ExternalLink, MapPin, FileText, Linkedin } from "lucide-react";
 import Image from "next/image";
 import { useScrollAnimation, usePageLoadAnimation } from "@/lib/animations";
 import { useState, useEffect } from "react";
@@ -188,6 +188,16 @@ const portfolioData = {
         name: "Email",
         url: "mailto:contact@vasie.dev",
         icon: "mail"
+      },
+      {
+        name: "LinkedIn",
+        url: "https://www.linkedin.com/in/vasco-smith-463503332/",
+        icon: "linkedin"
+      },
+      {
+        name: "CV",
+        url: "/cv.pdf",
+        icon: "file-text"
       }
     ],
     copyright: "Vasie All rights reserved."
@@ -279,18 +289,23 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-2.5 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-1000">
-                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} transition-all duration-200 rounded-lg`}>
-                    <a href="https://github.com/vasie1337" target="_blank" rel="noopener noreferrer">
-                      <Github className="mr-2 h-4 w-4" />
-                      GitHub
-                    </a>
-                  </Button>
-                  <Button size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} transition-all duration-200 rounded-lg`}>
-                    <a href="mailto:contact@vasie.dev">
-                      <Mail className="mr-2 h-4 w-4" />
-                      Contact
-                    </a>
-                  </Button>
+                  {portfolioData.contact.links.map((link, index) => {
+                    const iconMap: Record<string, React.ReactNode> = {
+                      'github': <Github className="mr-2 h-4 w-4" />,
+                      'mail': <Mail className="mr-2 h-4 w-4" />,
+                      'linkedin': <Linkedin className="mr-2 h-4 w-4" />,
+                      'file-text': <FileText className="mr-2 h-4 w-4" />
+                    };
+                    const isExternal = link.url.startsWith('http') || link.url.startsWith('mailto:');
+                    return (
+                      <Button key={index} size="sm" asChild className={`w-full ${theme.card.bg} ${theme.card.hoverBg} backdrop-blur-md border ${theme.card.border} ${theme.card.hoverBorder} ${theme.text.primary} transition-all duration-200 rounded-lg`}>
+                        <a href={link.url} target={isExternal ? "_blank" : undefined} rel={isExternal ? "noopener noreferrer" : undefined}>
+                          {iconMap[link.icon]}
+                          {link.name}
+                        </a>
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
