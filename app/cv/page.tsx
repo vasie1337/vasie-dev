@@ -38,7 +38,6 @@ export default function CVPage() {
     window.print();
   };
 
-  // Filter projects that have CV descriptions
   const cvProjects = projects.filter(p => p.cvDescription && p.cvDescription.length > 0);
 
   return (
