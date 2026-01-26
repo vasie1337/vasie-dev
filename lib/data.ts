@@ -57,25 +57,27 @@ export const expertise = [
   },
 ];
 
-export const experience = [
-  {
-    title: "Kitchen Assistant",
-    company: "Restaurant Nectar",
-    location: "Zutphen",
-    startDate: "Jan. 2024",
-    endDate: "Present",
-    description: [],
-  },
-];
+export const experience: {
+  title: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  description: string[];
+}[] = [];
 
 export const internships = [
   {
-    title: "Software Developer",
+    title: "Software Developer Intern",
     company: "ByteZero",
     location: "Deventer",
     startDate: "Sep. 2025",
     endDate: "Feb. 2026",
-    description: [],
+    description: [
+      "Developed proxy management systems and web scraping solutions using Rust and Go",
+      "Built internal tooling and dashboards with Next.js for monitoring proxy infrastructure",
+      "Collaborated on production microservices architecture for high-throughput data collection",
+    ],
   },
   {
     title: "Founder",
@@ -83,20 +85,25 @@ export const internships = [
     location: "Zutphen",
     startDate: "Dec. 2025",
     endDate: "Present",
-    description: [],
+    description: [
+      "Built a centralized internship search platform for MBO, HBO, and WO students in the Netherlands",
+      "Aggregated 150,000+ internship listings from multiple platforms using Python web scrapers",
+      "Implemented full-text search using Meilisearch for fast, relevant results",
+      "Deployed containerized infrastructure with Docker and Next.js frontend",
+    ],
   },
 ];
 
 export const education = [
   {
-    degree: "BOL",
+    degree: "MBO Software Development Level 4",
     institution: "Aventus",
     location: "Deventer",
     startDate: "Aug. 2024",
     endDate: "Present",
   },
   {
-    degree: "HBO TTO",
+    degree: "HAVO TTO (Bilingual Education)",
     institution: "Isendoorn College",
     location: "Zutphen",
     startDate: "Aug. 2019",
@@ -110,32 +117,34 @@ export const projects = [
     category: "Binary Security Tool",
     description: "x86-64 PE binary obfuscator written in Rust. Features advanced obfuscation techniques for Windows executables including control flow obfuscation and anti-analysis measures.",
     cvDescription: [
-      "Developed a production-grade x86-64 PE binary obfuscator in Rust for Windows executables",
-      "Implemented advanced obfuscation techniques including control flow obfuscation and anti-analysis measures",
+      "Production-grade x86-64 PE binary obfuscator in Rust for Windows executables",
+      "Implements control flow obfuscation, anti-analysis measures, and code transformation passes",
+      "26 GitHub stars — recognized tool in the security research space",
     ],
     technologies: ["Rust", "Assembly", "x86-64", "PE Format"],
     githubUrl: "https://github.com/Vasie1337/bin-obfuscator",
   },
   {
     title: "kernel-anticheat",
-    category: "Windows Kernel Development",
-    description: "A Windows kernel-mode driver designed to detect and prevent game cheats. Implements advanced detection mechanisms and security features to maintain game integrity at the kernel level.",
+    category: "Kernel Security Research",
+    description: "A Windows kernel-mode driver for driver integrity testing and security research. Implements hypervisor detection, NMI callbacks, and advanced kernel-level monitoring techniques.",
     cvDescription: [
-      "Windows kernel-level security tool for testing driver integrity",
-      "Features hypervisor detection and NMI callbacks for advanced security monitoring",
+      "Windows kernel-level security tool for driver integrity testing and security research",
+      "Implements hypervisor detection, NMI callbacks, and advanced kernel monitoring techniques",
+      "181 GitHub stars, 32 forks — widely adopted in the security research community",
     ],
     technologies: ["C++", "Windows Kernel", "Driver Development"],
     githubUrl: "https://github.com/Vasie1337/kernel-anticheat",
   },
   {
     title: "cheat-framework",
-    category: "Game Development Framework",
-    description: "Monorepo for game cheats with shared framework and adapter-based system access. Demonstrates advanced memory manipulation techniques and modular architecture design.",
+    category: "Memory Analysis Framework",
+    description: "Modular framework for memory analysis and adapter-based system access research. Demonstrates advanced low-level process interaction techniques and modular architecture design.",
     cvDescription: [
-      "Monorepo framework with adapter-based system access for game memory analysis",
-      "Demonstrates advanced memory manipulation and modular architecture design",
+      "Modular framework for memory analysis and adapter-based system access research",
+      "Demonstrates advanced low-level process interaction techniques and clean architecture patterns",
     ],
-    technologies: ["C++", "Memory Management", "DMA", "External APIs"],
+    technologies: ["C++", "Memory Management", "DMA", "Systems Programming"],
     githubUrl: "https://github.com/Vasie1337/cheat-framework",
   },
   {
@@ -164,7 +173,8 @@ export const projects = [
     description: "A Windows kernel driver that demonstrates efficient communication between kernel and user mode using shared memory sections and threading, showcasing advanced Windows driver development techniques.",
     cvDescription: [
       "Windows kernel driver demonstrating efficient kernel-user mode communication",
-      "Implemented shared memory sections and threading for high-performance data exchange",
+      "Implements shared memory sections and threading for high-performance data exchange",
+      "82 GitHub stars, 16 forks — popular reference implementation for driver developers",
     ],
     technologies: ["C++", "Windows Kernel", "Shared Memory"],
     githubUrl: "https://github.com/Vasie1337/sharedsection-driver",

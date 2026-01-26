@@ -163,34 +163,45 @@ export default function CVPage() {
           {/* Internships */}
           <div className="mb-2.5">
             <div className="text-[13px] font-bold uppercase my-2 border-b-[1.5px] border-black pb-0.5 tracking-wide">
-              INTERNSHIPS
+              PROFESSIONAL EXPERIENCE
             </div>
             {internships.map((internship, index) => (
-              <div key={index} className={`flex justify-between items-baseline ${index > 0 ? 'mt-2' : ''} mb-0.5`}>
-                <div>
-                  <div className="font-bold text-[11px]">{internship.title}</div>
-                  <div className="font-semibold text-[11px]">{internship.company}, {internship.location}</div>
+              <div key={index} className={`${index > 0 ? 'mt-2' : ''} mb-0.5`}>
+                <div className="flex justify-between items-baseline">
+                  <div>
+                    <div className="font-bold text-[11px]">{internship.title}</div>
+                    <div className="font-semibold text-[11px]">{internship.company}, {internship.location}</div>
+                  </div>
+                  <div className="text-[10px] italic">{internship.startDate} — {internship.endDate}</div>
                 </div>
-                <div className="text-[10px] italic">{internship.startDate} — {internship.endDate}</div>
+                {internship.description.length > 0 && (
+                  <ul className="my-0.5 ml-5 p-0 text-[10px]">
+                    {internship.description.map((desc, descIndex) => (
+                      <li key={descIndex} className="mb-0.5">{desc}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>
 
-          {/* Work Experience */}
-          <div className="mb-2.5">
-            <div className="text-[13px] font-bold uppercase my-2 border-b-[1.5px] border-black pb-0.5 tracking-wide">
-              WORK EXPERIENCE
-            </div>
-            {experience.map((job, index) => (
-              <div key={index} className="flex justify-between items-baseline mb-0.5">
-                <div>
-                  <div className="font-bold text-[11px]">{job.title}</div>
-                  <div className="font-semibold text-[11px]">{job.company}, {job.location}</div>
-                </div>
-                <div className="text-[10px] italic">{job.startDate} — {job.endDate}</div>
+          {/* Work Experience - only show if there are entries */}
+          {experience.length > 0 && (
+            <div className="mb-2.5">
+              <div className="text-[13px] font-bold uppercase my-2 border-b-[1.5px] border-black pb-0.5 tracking-wide">
+                WORK EXPERIENCE
               </div>
-            ))}
-          </div>
+              {experience.map((job, index) => (
+                <div key={index} className="flex justify-between items-baseline mb-0.5">
+                  <div>
+                    <div className="font-bold text-[11px]">{job.title}</div>
+                    <div className="font-semibold text-[11px]">{job.company}, {job.location}</div>
+                  </div>
+                  <div className="text-[10px] italic">{job.startDate} — {job.endDate}</div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Key Projects */}
           <div className="mb-2.5">
