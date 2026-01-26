@@ -159,3 +159,80 @@
     animation-delay: 4s;
   }
 }
+
+/* Print styles for CV */
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide non-essential elements */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for print */
+  .print\:bg-white {
+    background-color: white !important;
+  }
+
+  /* Reset text colors for print */
+  .print\:text-black {
+    color: black !important;
+  }
+
+  .print\:text-gray-700 {
+    color: #374151 !important;
+  }
+
+  .print\:text-gray-800 {
+    color: #1f2937 !important;
+  }
+
+  .print\:text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  /* Remove shadows and rounded corners */
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:rounded-none {
+    border-radius: 0 !important;
+  }
+
+  /* Remove padding adjustments */
+  .print\:pt-0 {
+    padding-top: 0 !important;
+  }
+
+  .print\:pb-0 {
+    padding-bottom: 0 !important;
+  }
+
+  .print\:px-0 {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Ensure links are visible */
+  a {
+    text-decoration: none !important;
+  }
+
+  /* Prevent page breaks inside elements */
+  section {
+    page-break-inside: avoid;
+  }
+
+  h2, h3 {
+    page-break-after: avoid;
+  }
+}
