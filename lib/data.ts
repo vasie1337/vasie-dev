@@ -2,7 +2,7 @@
 
 export const personalInfo = {
   name: "Vasco Smith",
-  displayName: "vasie",
+  displayName: "Vasco Smith",
   title: "Software Developer",
   email: "mail@vasie.dev",
   location: "Zutphen, Netherlands",

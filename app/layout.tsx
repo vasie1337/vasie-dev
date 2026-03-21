@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 const siteConfig = {
   name: "Vasco Smith",
-  displayName: "vasie",
+  displayName: "Vasco Smith",
   title: "Vasco Smith | Software Developer",
   description: "Software developer specializing in systems programming, kernel development, and full-stack web applications. Expertise in Rust, C++, Go, and TypeScript with a focus on performance optimization and security research.",
   url: "https://vasie.dev",
