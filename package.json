@@ -6,9 +6,10 @@
 		"node": ">=22.12.0"
 	},
 	"scripts": {
-		"dev": "astro dev",
-		"build": "astro build",
-		"preview": "astro build && astro preview",
+		"dev": "npm run build:cv && astro dev",
+		"build": "npm run build:cv && astro build",
+		"build:cv": "node scripts/build-cv.mjs",
+		"preview": "npm run build:cv && astro build && astro preview",
 		"astro": "astro",
 		"generate-types": "wrangler types",
 		"deploy": "astro build && wrangler deploy",
@@ -23,6 +24,7 @@
 		"tailwindcss": "^4.2.4"
 	},
 	"devDependencies": {
+		"@myriaddreamin/typst-ts-node-compiler": "^0.7.0-rc2",
 		"wrangler": "^4.85.0"
 	},
 	"overrides": {
