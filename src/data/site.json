@@ -29,11 +29,12 @@
     "stack": ["typescript", "javascript", "go", "rust", "c++", "python", "php"],
     "experience": [
         { "language": "c++", "since": 2020 },
+        { "language": "rust", "since": 2024 },
         { "language": "go", "since": 2024 },
         { "language": "php", "since": 2024 },
         { "language": "python", "since": 2024 },
         { "language": "typescript", "since": 2025 },
-        { "language": "javascript", "since": 2025 }
+        { "language": "javascript", "since": 2024 }
     ],
     "projects": [
         {
