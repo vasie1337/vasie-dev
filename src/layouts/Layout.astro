@@ -2,8 +2,16 @@
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
 }
-const { title = 'vasie', description = 'systems, rust, windows internals.' } = Astro.props;
+const {
+  title = 'Vasco Smith',
+  description = 'systems, rust, windows internals. the netherlands.',
+  image = '/avatar.jpg',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const imageUrl = new URL(image, Astro.site).toString();
 import '../styles/global.css';
 ---
 <!doctype html>
@@ -12,9 +20,29 @@ import '../styles/global.css';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
     <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Vasco Smith" />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="icon" type="image/jpeg" href="/avatar.jpg" />
+    <link rel="apple-touch-icon" href="/avatar.jpg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="vasie.dev" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content="Vasco Smith" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:creator" content="@vasie1337" />
+
     <script is:inline src="/theme.js"></script>
   </head>
   <body>
