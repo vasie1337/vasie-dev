@@ -16,6 +16,8 @@ const links = [
     { label: "linkedin", href: "https://www.linkedin.com/in/vascosmith/" },
     { label: "email", href: "mailto:vasie1337@gmail.com" },
 ];
+
+const stack = ["typescript", "javascript", "go", "rust", "c", "c++", "python"];
 ---
 
 <Layout
@@ -31,12 +33,14 @@ const links = [
                 Vasco Smith
             </h1>
             <p
-                class="font-mono text-muted mt-2"
+                class="font-mono text-muted mt-3"
                 style="font-size: var(--step--1);"
             >
-                <span class="text-fg">vasie1337</span>
-                <span class="mx-2 opacity-60">-</span>
+                vasie1337
+                <span class="mx-2 opacity-60">·</span>
                 the netherlands
+                <span class="mx-2 opacity-60">·</span>
+                {stack.join(" / ")}
             </p>
             <nav
                 class="font-mono mt-6 flex gap-5 flex-wrap items-center text-muted"
