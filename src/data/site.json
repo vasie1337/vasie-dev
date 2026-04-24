@@ -1,98 +1,122 @@
 {
-  "name": "Vasco Smith",
-  "handle": "vasie1337",
-  "location": "the netherlands",
-  "cvLocation": "Zutphen, NL",
-  "email": "vasie1337@gmail.com",
-  "site": "vasie.dev",
-  "title": "Vasco Smith",
-  "description": "systems, rust, windows internals. the netherlands.",
-  "bio": "kernel drivers, compiler passes, small interpreters, quic experiments. mostly c++ and rust. interested in what sits under the abstraction: allocators, codegen, syscalls.",
-  "links": [
-    { "label": "github", "href": "https://github.com/vasie1337" },
-    { "label": "x", "href": "https://x.com/vasie1337" },
-    { "label": "linkedin", "href": "https://www.linkedin.com/in/vascosmith/" },
-    { "label": "email", "href": "mailto:vasie1337@gmail.com" },
-    { "label": "cv", "href": "/cv.pdf" }
-  ],
-  "cvLinks": {
-    "linkedin": "https://www.linkedin.com/in/vascosmith",
-    "linkedinLabel": "linkedin.com/in/vascosmith",
-    "github": "https://github.com/vasie1337",
-    "githubLabel": "github.com/vasie1337",
-    "site": "https://vasie.dev",
-    "siteLabel": "vasie.dev"
-  },
-  "stack": ["typescript", "javascript", "go", "rust", "c++", "python", "php"],
-  "experience": [
-    { "language": "c++", "since": 2020 },
-    { "language": "go", "since": 2024 },
-    { "language": "php", "since": 2024 },
-    { "language": "python", "since": 2024 },
-    { "language": "typescript", "since": 2025 },
-    { "language": "javascript", "since": 2025 }
-  ],
-  "projects": [
-    {
-      "title": "quic-remote-memory",
-      "description": "Rust proof-of-concept for streaming memory reads over a QUIC transport.",
-      "cvDescription": "Proof-of-concept that streams remote process memory reads over QUIC using `quinn`.",
-      "tags": ["rust", "quic", "networking"],
-      "cvStack": "Rust · QUIC · networking",
-      "url": "https://github.com/vasie1337/quic-remote-memory",
-      "cvUrlLabel": "github.com/vasie1337/quic-remote-memory"
+    "name": "Vasco Smith",
+    "handle": "vasie1337",
+    "location": "the netherlands",
+    "cvLocation": "Zutphen, NL",
+    "email": "vasie1337@gmail.com",
+    "site": "vasie.dev",
+    "title": "Vasco Smith",
+    "description": "systems, rust, windows internals. the netherlands.",
+    "bio": "kernel drivers, compiler passes, small interpreters, quic experiments. mostly c++ and rust. interested in what sits under the abstraction: allocators, codegen, syscalls.",
+    "links": [
+        { "label": "github", "href": "https://github.com/vasie1337" },
+        { "label": "x", "href": "https://x.com/vasie1337" },
+        {
+            "label": "linkedin",
+            "href": "https://www.linkedin.com/in/vascosmith/"
+        },
+        { "label": "email", "href": "mailto:vasie1337@gmail.com" },
+        { "label": "cv", "href": "/cv.pdf" }
+    ],
+    "cvLinks": {
+        "linkedin": "https://www.linkedin.com/in/vascosmith",
+        "linkedinLabel": "linkedin.com/in/vascosmith",
+        "github": "https://github.com/vasie1337",
+        "githubLabel": "github.com/vasie1337",
+        "site": "https://vasie.dev",
+        "siteLabel": "vasie.dev"
     },
-    {
-      "title": "llvm-obfuscator",
-      "description": "LLVM pass-based code obfuscator.",
-      "cvDescription": "Out-of-tree LLVM passes that apply control-flow flattening, opaque predicates, and instruction substitution at the IR level. Plugs into a stock clang toolchain.",
-      "tags": ["c++", "llvm", "compilers"],
-      "cvStack": "C++ · LLVM pass pipeline",
-      "url": "https://github.com/vasie1337/llvm-obfuscator",
-      "cvUrlLabel": "github.com/vasie1337/llvm-obfuscator"
-    },
-    {
-      "title": "kernel-anticheat",
-      "description": "Windows kernel driver for scanning cheat signals.",
-      "cvDescription": "Ring-0 Windows driver that scans for cheat signals via process handle stripping, module enumeration, and signature checks. Intended as a reference target to test defensive drivers against.",
-      "tags": ["c++", "windows", "kernel"],
-      "cvStack": "C++ · Windows kernel driver",
-      "url": "https://github.com/vasie1337/kernel-anticheat",
-      "cvUrlLabel": "github.com/vasie1337/kernel-anticheat"
-    },
-    {
-      "title": "rust-interp",
-      "description": "Tree-walking interpreter in Rust.",
-      "cvDescription": "Tree-walking interpreter in Rust: lexer, Pratt parser, and evaluator for a small expression-oriented language.",
-      "tags": ["rust", "interpreter"],
-      "cvStack": "Rust · language implementation",
-      "url": "https://github.com/vasie1337/rust-interp",
-      "cvUrlLabel": "github.com/vasie1337/rust-interp"
-    }
-  ],
-  "work": [
-    {
-      "role": "Software Engineer",
-      "company": "ByteZero",
-      "location": "Deventer, NL",
-      "stack": "proxy infrastructure · Rust, Go, Redis",
-      "period": "Sep 2025 – Jan 2026",
-      "bullets": [
-        "Worked on a geo-targeted proxy service that resells upstream pools (Oxylabs and similar); clients query proxies by country for scraping and localization workloads.",
-        "Triaged and patched the original Go collector, then rewrote it in Rust after the Go version leaked memory under long-lived load. The service refreshes the pool from upstream providers, probes liveness, and indexes geo metadata so the API can serve per-country selections.",
-        "A typical snapshot tracked ~140k proxies across ~133k unique outbound IPs, with duplicate detection and health checks driven from Redis."
-      ]
-    }
-  ],
-  "education": [
-    {
-      "school": "Aventus, Software Developer (MBO level 4)",
-      "period": "Aug 2024 – Jul 2027"
-    }
-  ],
-  "cvSkills": [
-    { "label": "Languages", "value": "Dutch (native), English (B1)" },
-    { "label": "Systems", "value": "Rust, Go, C++, x86-64 assembly, LLVM" },
-    { "label": "Web & infra", "value": "TypeScript, Node.js, Astro, Redis, Linux, Git, Cloudflare Workers" }
-  ]
+    "stack": ["typescript", "javascript", "go", "rust", "c++", "python", "php"],
+    "experience": [
+        { "language": "c++", "since": 2020 },
+        { "language": "go", "since": 2024 },
+        { "language": "php", "since": 2024 },
+        { "language": "python", "since": 2024 },
+        { "language": "typescript", "since": 2025 },
+        { "language": "javascript", "since": 2025 }
+    ],
+    "projects": [
+        {
+            "title": "kernel-anticheat",
+            "description": "Windows kernel anti-cheat for driver integrity testing and security research.",
+            "cvDescription": "Ring-0 Windows driver built as a reference anti-cheat for driver integrity testing and security research. Scans for cheat signals via process handle stripping, module enumeration, and signature checks.",
+            "tags": ["c++", "windows", "kernel"],
+            "cvStack": "C++ · Windows kernel driver",
+            "url": "https://github.com/vasie1337/kernel-anticheat",
+            "cvUrlLabel": "github.com/vasie1337/kernel-anticheat"
+        },
+        {
+            "title": "x86-obfuscator",
+            "description": "Rust CLI for x86-64 PE binary obfuscation with a custom lifter.",
+            "cvDescription": "Rust CLI that obfuscates x86-64 PE binaries through a custom lifter, applying transformations on the IR before reassembly.",
+            "tags": ["rust", "x86", "obfuscation"],
+            "cvStack": "Rust · x86-64 · PE rewriting",
+            "url": "https://github.com/vasie1337/x86-obfuscator",
+            "cvUrlLabel": "github.com/vasie1337/x86-obfuscator"
+        },
+        {
+            "title": "shared-section-driver",
+            "description": "Windows kernel driver demonstrating kernel-to-usermode communication via shared memory sections.",
+            "cvDescription": "Windows kernel driver that establishes shared memory sections mapped into both ring-0 and ring-3, demonstrating low-overhead kernel-to-usermode communication.",
+            "tags": ["c++", "windows", "kernel"],
+            "cvStack": "C++ · Windows kernel driver",
+            "url": "https://github.com/vasie1337/shared-section-driver",
+            "cvUrlLabel": "github.com/vasie1337/shared-section-driver"
+        },
+        {
+            "title": "quic-remote-memory",
+            "description": "Rust proof-of-concept for streaming memory reads over a QUIC transport.",
+            "cvDescription": "Proof-of-concept that streams remote process memory reads over QUIC using `quinn`.",
+            "tags": ["rust", "quic", "networking"],
+            "cvStack": "Rust · QUIC · networking",
+            "url": "https://github.com/vasie1337/quic-remote-memory",
+            "cvUrlLabel": "github.com/vasie1337/quic-remote-memory"
+        },
+        {
+            "title": "llvm-obfuscator",
+            "description": "LLVM pass for code obfuscation via MBA and control-flow flattening.",
+            "cvDescription": "Out-of-tree LLVM passes applying mixed boolean-arithmetic transformations and control-flow flattening at the IR level. Plugs into a stock clang toolchain.",
+            "tags": ["c++", "llvm", "compilers"],
+            "cvStack": "C++ · LLVM pass pipeline",
+            "url": "https://github.com/vasie1337/llvm-obfuscator",
+            "cvUrlLabel": "github.com/vasie1337/llvm-obfuscator"
+        },
+        {
+            "title": "doh-edge",
+            "description": "DNS resolver with edge-local caching, built on Workers + Durable Objects.",
+            "cvDescription": "DNS-over-HTTPS resolver running on Cloudflare Workers, with edge-local caching backed by Durable Objects for per-region state.",
+            "tags": ["rust", "cloudflare", "dns"],
+            "cvStack": "Rust · Cloudflare Workers · Durable Objects",
+            "url": "https://github.com/vasie1337/doh-edge",
+            "cvUrlLabel": "github.com/vasie1337/doh-edge"
+        }
+    ],
+    "work": [
+        {
+            "role": "Software Engineer",
+            "company": "ByteZero",
+            "location": "Deventer, NL",
+            "stack": "proxy infrastructure · Rust, Go, Redis",
+            "period": "Sep 2025 – Jan 2026",
+            "bullets": [
+                "Worked on a geo-targeted proxy service that resells upstream pools (Oxylabs and similar); clients query proxies by country for scraping and localization workloads.",
+                "Triaged and patched the original Go collector, then rewrote it in Rust after the Go version leaked memory under long-lived load. The service refreshes the pool from upstream providers, probes liveness, and indexes geo metadata so the API can serve per-country selections.",
+                "A typical snapshot tracked ~140k proxies across ~133k unique outbound IPs, with duplicate detection and health checks driven from Redis."
+            ]
+        }
+    ],
+    "education": [
+        {
+            "school": "Aventus, Software Developer (MBO level 4)",
+            "period": "Aug 2024 – Jul 2027"
+        }
+    ],
+    "cvSkills": [
+        { "label": "Languages", "value": "Dutch (native), English (B1)" },
+        { "label": "Systems", "value": "Rust, Go, C++, x86-64 assembly, LLVM" },
+        {
+            "label": "Web & infra",
+            "value": "TypeScript, Node.js, Astro, Redis, Linux, Git, Cloudflare Workers"
+        }
+    ]
 }

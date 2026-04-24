@@ -2,7 +2,7 @@
 
 #set document(title: data.name + " CV", author: data.name)
 #set page(paper: "a4", margin: (x: 1.6cm, y: 1.4cm))
-#set text(font: "New Computer Modern", size: 10pt, lang: "en")
+#set text(font: "New Computer Modern", size: 9pt, lang: "en")
 #set par(leading: 0.55em, justify: false)
 #show link: set text(fill: rgb("#1f4fd8"))
 
@@ -20,8 +20,7 @@
   grid(
     columns: (1fr, auto),
     align: (left, right),
-    text(weight: "semibold", lhs),
-    text(fill: luma(80), rhs),
+    text(weight: "semibold", lhs), text(fill: luma(80), rhs),
   )
   if sub != none {
     text(style: "italic", fill: luma(90), sub)
@@ -35,8 +34,7 @@
   grid(
     columns: (0.7em, 1fr),
     align: (top, left),
-    "•",
-    body,
+    "•", body,
   )
 }
 
@@ -47,7 +45,7 @@
   #text(size: 9.5pt, fill: luma(80))[
     #data.cvLocation
     #sym.dot.c
-    #link("mailto:" + data.email)[#data.email.replace("@", "\\@")]
+    #link("mailto:" + data.email)[#data.email]
     #sym.dot.c
     #link(data.cvLinks.site)[#data.cvLinks.siteLabel]
     #sym.dot.c
