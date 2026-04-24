@@ -1,11 +1,108 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import ExternalIcon from "../components/ExternalIcon.astro";
+import { getCollection } from "astro:content";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const projects = (await getCollection("projects")).sort((a, b) => {
+    const sa = a.data.stars ?? -1;
+    const sb = b.data.stars ?? -1;
+    if (sb !== sa) return sb - sa;
+    return a.data.title.localeCompare(b.data.title);
+});
+
+const links = [
+    { label: "github", href: "https://github.com/vasie1337" },
+    { label: "x", href: "https://x.com/vasie1337" },
+    { label: "linkedin", href: "https://www.linkedin.com/in/vascosmith/" },
+    { label: "email", href: "mailto:vasie1337@gmail.com" },
+];
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+    title="Vasco Smith"
+    description="systems, rust, windows internals. the netherlands."
+>
+    <main class="mx-auto px-6 py-20" style="max-width: var(--measure);">
+        <header>
+            <h1
+                class="font-mono font-medium"
+                style="font-size: var(--step-3); letter-spacing: -0.01em;"
+            >
+                Vasco Smith
+            </h1>
+            <p
+                class="font-mono text-muted mt-2"
+                style="font-size: var(--step--1);"
+            >
+                <span class="text-fg">vasie1337</span> — systems, rust, windows internals. the netherlands.
+            </p>
+            <nav
+                class="font-mono mt-5 flex gap-4"
+                style="font-size: var(--step--1);"
+            >
+                {
+                    links.map((l) => (
+                        <a href={l.href} rel="me noopener">
+                            {l.label}
+                        </a>
+                    ))
+                }
+            </nav>
+        </header>
+
+        <section class="mt-16">
+            <h2 class="font-mono text-muted" style="font-size: var(--step--1);">
+                projects
+            </h2>
+            <ul class="mt-4 flex flex-col gap-6">
+                {
+                    projects.map((p) => (
+                        <li>
+                            <div class="flex items-baseline gap-3 flex-wrap">
+                                <a
+                                    href={p.data.url ?? "#"}
+                                    rel="noopener"
+                                    class="font-mono font-medium no-underline hover:text-accent"
+                                    style="font-size: var(--step-0);"
+                                >
+                                    {p.data.title}
+                                    <ExternalIcon class="ml-1 text-muted" />
+                                </a>
+                                {typeof p.data.stars === "number" && (
+                                    <span
+                                        class="font-mono text-muted"
+                                        style="font-size: var(--step--1);"
+                                    >
+                                        ★ {p.data.stars}
+                                    </span>
+                                )}
+                            </div>
+                            <p class="mt-1" style="font-size: var(--step-0);">
+                                {p.data.description}
+                            </p>
+                            {p.data.tags.length > 0 && (
+                                <div
+                                    class="font-mono text-muted mt-1 flex gap-3 flex-wrap"
+                                    style="font-size: var(--step--1);"
+                                >
+                                    {p.data.tags.map((t) => (
+                                        <span>{t}</span>
+                                    ))}
+                                </div>
+                            )}
+                        </li>
+                    ))
+                }
+            </ul>
+        </section>
+
+        <footer
+            class="mt-20 font-mono text-muted"
+            style="font-size: var(--step--1);"
+        >
+            <a href="https://developers.cloudflare.com/workers/" rel="noopener"
+                >deployed on cloudflare workers</a
+            >
+        </footer>
+    </main>
 </Layout>

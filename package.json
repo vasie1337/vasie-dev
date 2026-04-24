@@ -16,7 +16,11 @@
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "^13.2.1",
-		"astro": "^6.1.9"
+		"@fontsource/geist-mono": "^5.2.7",
+		"@fontsource/geist-sans": "^5.2.5",
+		"@tailwindcss/vite": "^4.2.4",
+		"astro": "^6.1.9",
+		"tailwindcss": "^4.2.4"
 	},
 	"devDependencies": {
 		"wrangler": "^4.85.0"
