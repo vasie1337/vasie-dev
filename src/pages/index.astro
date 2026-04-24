@@ -1,74 +1,41 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import ExternalIcon from "../components/ExternalIcon.astro";
-import { getCollection } from "astro:content";
+import site from "../data/site.json";
 
-const projects = (await getCollection("projects")).sort((a, b) => {
-    const sa = a.data.stars ?? -1;
-    const sb = b.data.stars ?? -1;
-    if (sb !== sa) return sb - sa;
-    return a.data.title.localeCompare(b.data.title);
-});
-
-const links = [
-    { label: "github", href: "https://github.com/vasie1337" },
-    { label: "x", href: "https://x.com/vasie1337" },
-    { label: "linkedin", href: "https://www.linkedin.com/in/vascosmith/" },
-    { label: "email", href: "mailto:vasie1337@gmail.com" },
-    { label: "cv", href: "/cv.pdf" },
-];
-
-const stack = [
-    "typescript",
-    "javascript",
-    "go",
-    "rust",
-    "c++",
-    "python",
-    "php",
-];
-
-const experience = [
-    { language: "c++", since: 2020 },
-    { language: "go", since: 2024 },
-    { language: "php", since: 2024 },
-    { language: "python", since: 2024 },
-    { language: "typescript", since: 2025 },
-    { language: "javascript", since: 2025 },
-];
+const projects = [...site.projects].sort((a, b) =>
+    a.title.localeCompare(b.title),
+);
 
 const currentYear = new Date().getFullYear();
 const formatYears = (n: number) => `${n} year${n === 1 ? "" : "s"}`;
 ---
 
-<Layout
-    title="Vasco Smith"
-    description="systems, rust, windows internals. the netherlands."
->
+<Layout title={site.title} description={site.description}>
     <main class="mx-auto px-6 py-24" style="max-width: var(--measure);">
         <header>
             <h1
                 class="font-mono font-medium"
                 style="font-size: var(--step-1); letter-spacing: -0.02em;"
             >
-                Vasco Smith
+                {site.name}
             </h1>
             <p
                 class="font-mono text-muted mt-3"
                 style="font-size: var(--step--1);"
             >
-                vasie1337
+                {site.handle}
                 <span class="mx-2 opacity-60">·</span>
-                the netherlands
+                {site.location}
                 <span class="mx-2 opacity-60">·</span>
-                {stack.join(" / ")}
+                {site.stack.join(" / ")}
             </p>
             <nav
                 class="font-mono mt-6 flex gap-5 flex-wrap items-center text-muted"
                 style="font-size: var(--step--1);"
             >
                 {
-                    links.map((l) => (
+                    site.links.map((l) => (
                         <a
                             href={l.href}
                             rel="me noopener"
@@ -95,9 +62,7 @@ const formatYears = (n: number) => `${n} year${n === 1 ? "" : "s"}`;
             class="mt-8 text-muted"
             style="font-size: var(--step--1); max-width: 70ch;"
         >
-            kernel drivers, compiler passes, small interpreters, quic
-            experiments. mostly c++ and rust. interested in what sits under the
-            abstraction: allocators, codegen, syscalls.
+            {site.bio}
         </p>
 
         <section class="mt-10">
@@ -113,12 +78,12 @@ const formatYears = (n: number) => `${n} year${n === 1 ? "" : "s"}`;
                         <li class="group">
                             <div class="flex items-baseline gap-3 flex-wrap">
                                 <a
-                                    href={p.data.url ?? "#"}
+                                    href={p.url ?? "#"}
                                     rel="noopener"
                                     class="font-mono font-medium no-underline group-hover:text-accent"
                                     style="font-size: var(--step-0);"
                                 >
-                                    {p.data.title}
+                                    {p.title}
                                     <ExternalIcon class="ml-1 text-muted opacity-70 group-hover:opacity-100" />
                                 </a>
                             </div>
@@ -126,14 +91,14 @@ const formatYears = (n: number) => `${n} year${n === 1 ? "" : "s"}`;
                                 class="mt-1.5 text-muted"
                                 style="font-size: var(--step--1);"
                             >
-                                {p.data.description}
+                                {p.description}
                             </p>
-                            {p.data.tags.length > 0 && (
+                            {p.tags.length > 0 && (
                                 <div
                                     class="font-mono text-muted mt-2 flex gap-4 flex-wrap"
                                     style="font-size: var(--step--1);"
                                 >
-                                    {p.data.tags.map((t) => (
+                                    {p.tags.map((t) => (
                                         <span>{t}</span>
                                     ))}
                                 </div>
@@ -153,7 +118,7 @@ const formatYears = (n: number) => `${n} year${n === 1 ? "" : "s"}`;
             </h2>
             <ul class="mt-3 flex flex-col gap-1">
                 {
-                    experience.map((e) => (
+                    site.experience.map((e) => (
                         <li
                             class="font-mono flex gap-4 items-baseline"
                             style="font-size: var(--step--1);"

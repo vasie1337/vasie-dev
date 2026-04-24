@@ -7,7 +7,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const input = resolve(root, 'cv/cv.typ');
 const output = resolve(root, 'public/cv.pdf');
 
-const compiler = NodeCompiler.create({ workspace: resolve(root, 'cv') });
+const compiler = NodeCompiler.create({ workspace: root });
 const pdf = compiler.pdf({ mainFilePath: input });
 
 await mkdir(dirname(output), { recursive: true });
