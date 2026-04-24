@@ -22,11 +22,11 @@ const links = [
     title="Vasco Smith"
     description="systems, rust, windows internals. the netherlands."
 >
-    <main class="mx-auto px-6 py-20" style="max-width: var(--measure);">
+    <main class="mx-auto px-6 py-24" style="max-width: var(--measure);">
         <header>
             <h1
                 class="font-mono font-medium"
-                style="font-size: var(--step-3); letter-spacing: -0.01em;"
+                style="font-size: var(--step-1); letter-spacing: -0.02em;"
             >
                 Vasco Smith
             </h1>
@@ -34,15 +34,19 @@ const links = [
                 class="font-mono text-muted mt-2"
                 style="font-size: var(--step--1);"
             >
-                <span class="text-fg">vasie1337</span> — systems, rust, windows internals. the netherlands.
+                <span class="text-fg">vasie1337</span>
+                <span class="mx-2 opacity-60">·</span>
+                systems, rust, windows internals
+                <span class="mx-2 opacity-60">·</span>
+                the netherlands
             </p>
             <nav
-                class="font-mono mt-5 flex gap-4"
+                class="font-mono mt-6 flex gap-5 flex-wrap text-muted"
                 style="font-size: var(--step--1);"
             >
                 {
                     links.map((l) => (
-                        <a href={l.href} rel="me noopener">
+                        <a href={l.href} rel="me noopener" class="no-underline hover:text-accent">
                             {l.label}
                         </a>
                     ))
@@ -50,23 +54,26 @@ const links = [
             </nav>
         </header>
 
-        <section class="mt-16">
-            <h2 class="font-mono text-muted" style="font-size: var(--step--1);">
+        <section class="mt-20">
+            <h2
+                class="font-mono text-muted uppercase"
+                style="font-size: var(--step--1); letter-spacing: 0.08em;"
+            >
                 projects
             </h2>
-            <ul class="mt-4 flex flex-col gap-6">
+            <ul class="mt-6 flex flex-col gap-8">
                 {
                     projects.map((p) => (
-                        <li>
+                        <li class="group">
                             <div class="flex items-baseline gap-3 flex-wrap">
                                 <a
                                     href={p.data.url ?? "#"}
                                     rel="noopener"
-                                    class="font-mono font-medium no-underline hover:text-accent"
+                                    class="font-mono font-medium no-underline group-hover:text-accent"
                                     style="font-size: var(--step-0);"
                                 >
                                     {p.data.title}
-                                    <ExternalIcon class="ml-1 text-muted" />
+                                    <ExternalIcon class="ml-1 text-muted opacity-70 group-hover:opacity-100" />
                                 </a>
                                 {typeof p.data.stars === "number" && (
                                     <span
@@ -77,12 +84,12 @@ const links = [
                                     </span>
                                 )}
                             </div>
-                            <p class="mt-1" style="font-size: var(--step-0);">
+                            <p class="mt-1.5 text-muted" style="font-size: var(--step--1);">
                                 {p.data.description}
                             </p>
                             {p.data.tags.length > 0 && (
                                 <div
-                                    class="font-mono text-muted mt-1 flex gap-3 flex-wrap"
+                                    class="font-mono text-muted mt-2 flex gap-4 flex-wrap"
                                     style="font-size: var(--step--1);"
                                 >
                                     {p.data.tags.map((t) => (
@@ -97,8 +104,8 @@ const links = [
         </section>
 
         <footer
-            class="mt-20 font-mono text-muted"
-            style="font-size: var(--step--1);"
+            class="mt-24 pt-6 border-t font-mono text-muted"
+            style="font-size: var(--step--1); border-color: var(--rule);"
         >
             <a href="https://developers.cloudflare.com/workers/" rel="noopener"
                 >deployed on cloudflare workers</a

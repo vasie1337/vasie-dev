@@ -46,23 +46,34 @@
 
 html {
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: 14px;
   color: var(--fg);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01', 'cv11';
 }
 
 body {
   margin: 0;
-  line-height: 1.55;
+  line-height: 1.6;
+}
+
+.text-muted { color: var(--muted); }
+.text-fg { color: var(--fg); }
+
+code, kbd, samp, pre, .font-mono {
+  font-feature-settings: 'ss01', 'ss02', 'zero';
 }
 
 a {
   color: inherit;
   text-decoration: underline;
   text-decoration-color: var(--rule);
-  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color 120ms ease, text-decoration-color 120ms ease;
 }
 a:hover {
   text-decoration-color: var(--accent);
