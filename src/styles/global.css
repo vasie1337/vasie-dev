@@ -25,8 +25,15 @@
   --measure: 680px;
 }
 
+:root[data-theme='dark'] {
+  --fg: #fafafa;
+  --bg: #0a0a0a;
+  --muted: #8a8a8a;
+  --rule: #1f1f1f;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --fg: #fafafa;
     --bg: #0a0a0a;
     --muted: #8a8a8a;
@@ -81,7 +88,7 @@ a:hover {
 }
 
 ::selection {
-  background: var(--accent);
+  background: #b3d4fc;
   color: #0a0a0a;
 }
 

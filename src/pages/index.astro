@@ -35,22 +35,34 @@ const links = [
                 style="font-size: var(--step--1);"
             >
                 <span class="text-fg">vasie1337</span>
-                <span class="mx-2 opacity-60">·</span>
-                systems, rust, windows internals
-                <span class="mx-2 opacity-60">·</span>
+                <span class="mx-2 opacity-60">-</span>
                 the netherlands
             </p>
             <nav
-                class="font-mono mt-6 flex gap-5 flex-wrap text-muted"
+                class="font-mono mt-6 flex gap-5 flex-wrap items-center text-muted"
                 style="font-size: var(--step--1);"
             >
                 {
                     links.map((l) => (
-                        <a href={l.href} rel="me noopener" class="no-underline hover:text-accent">
+                        <a
+                            href={l.href}
+                            rel="me noopener"
+                            class="no-underline hover:text-accent"
+                        >
                             {l.label}
                         </a>
                     ))
                 }
+                <span class="opacity-40" aria-hidden="true">|</span>
+                <button
+                    id="theme-toggle"
+                    type="button"
+                    aria-label="toggle theme"
+                    class="font-mono text-muted hover:text-accent cursor-pointer"
+                    style="font-size: var(--step--1);"
+                >
+                    [<span data-theme-label>theme</span>]
+                </button>
             </nav>
         </header>
 
@@ -84,7 +96,10 @@ const links = [
                                     </span>
                                 )}
                             </div>
-                            <p class="mt-1.5 text-muted" style="font-size: var(--step--1);">
+                            <p
+                                class="mt-1.5 text-muted"
+                                style="font-size: var(--step--1);"
+                            >
                                 {p.data.description}
                             </p>
                             {p.data.tags.length > 0 && (
