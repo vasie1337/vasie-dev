@@ -113,7 +113,7 @@
         }
     ],
     "cvSkills": [
-        { "label": "Languages", "value": "Dutch (native), English (B1)" },
+        { "label": "Languages", "value": "Dutch (native), English (C1)" },
         { "label": "Systems", "value": "Rust, Go, C++, x86-64 assembly, LLVM" },
         {
             "label": "Web & infra",
