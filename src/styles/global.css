@@ -97,6 +97,18 @@ a:hover {
     color: var(--accent);
 }
 
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: underline;
+    text-decoration-color: var(--muted);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+.nav-link:hover {
+    text-decoration-color: var(--accent);
+}
+
 ::selection {
     background: var(--accent);
     color: #0a0a0a;
