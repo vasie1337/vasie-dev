@@ -9,13 +9,13 @@
     "description": "systems, rust, windows internals. the netherlands.",
     "bio": "kernel drivers, compiler passes, small interpreters, quic experiments. mostly c++ and rust. interested in what sits under the abstraction: allocators, codegen, syscalls.",
     "links": [
+        { "label": "writeups", "href": "/writeups" },
         { "label": "github", "href": "https://github.com/vasie1337" },
         { "label": "x", "href": "https://x.com/vasie1337" },
         {
             "label": "linkedin",
             "href": "https://www.linkedin.com/in/vascosmith/"
         },
-        { "label": "writeups", "href": "/writeups" },
         { "label": "email", "href": "mailto:vasie1337@gmail.com" },
         { "label": "cv", "href": "/cv.pdf" }
     ],

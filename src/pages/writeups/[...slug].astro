@@ -32,7 +32,7 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
         <header class="mt-6">
             <h1
                 class="font-mono font-medium"
-                style="font-size: var(--step-1); letter-spacing: -0.02em;"
+                style="font-size: var(--step-2); letter-spacing: -0.02em;"
             >
                 {post.data.title}
             </h1>
@@ -60,131 +60,76 @@ const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
 <style is:global>
     .prose {
-        font-size: var(--step--1);
+        font-size: var(--step-0);
         line-height: 1.7;
         max-width: 70ch;
-        color: var(--muted);
     }
     .prose > * + * {
-        margin-top: 1.2em;
-    }
-    .prose p {
-        margin: 0;
-    }
-    .prose strong {
-        color: var(--fg);
-        font-weight: 500;
-    }
-    .prose em {
-        font-style: italic;
-    }
-    .prose h2,
-    .prose h3,
-    .prose h4 {
-        color: var(--fg);
-        font-family: var(--font-mono);
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        margin-bottom: -0.3em;
+        margin-top: 1.1em;
     }
     .prose h2 {
-        font-size: var(--step-0);
-        margin-top: 2.4em;
-    }
-    .prose h3 {
-        font-size: var(--step--1);
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-size: var(--step-1);
+        letter-spacing: -0.01em;
         margin-top: 2em;
     }
-    .prose h4 {
-        font-size: var(--step--1);
-        color: var(--muted);
-        margin-top: 1.8em;
-    }
-    .prose a {
-        color: inherit;
-        text-decoration: underline;
-        text-decoration-color: var(--rule);
-        text-underline-offset: 4px;
-    }
-    .prose a:hover {
-        color: var(--accent);
-        text-decoration-color: var(--accent);
+    .prose h3 {
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-size: var(--step-0);
+        margin-top: 1.6em;
     }
     .prose code {
         font-family: var(--font-mono);
-        font-size: 0.92em;
-        color: var(--fg);
-        background: color-mix(in oklab, var(--rule) 55%, transparent);
-        padding: 0.08em 0.32em;
-        border-radius: 2px;
+        font-size: 0.9em;
+        background: color-mix(in oklab, var(--rule) 60%, transparent);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
     }
     .prose pre {
         font-family: var(--font-mono);
         font-size: var(--step--1);
         padding: 1em 1.1em;
         border: 1px solid var(--rule);
-        border-radius: 3px;
+        border-radius: 4px;
         overflow-x: auto;
-        line-height: 1.6;
-        color: var(--fg);
-        background: transparent;
+        line-height: 1.55;
     }
     .prose pre code {
         background: transparent;
         padding: 0;
         border-radius: 0;
         font-size: inherit;
-        color: inherit;
     }
     .prose ul,
     .prose ol {
-        padding-left: 0;
-        list-style: none;
-    }
-    .prose li {
-        position: relative;
         padding-left: 1.4em;
     }
-    .prose ul > li::before {
-        content: "—";
-        position: absolute;
-        left: 0;
-        color: var(--muted);
-        opacity: 0.6;
+    .prose ul {
+        list-style: disc;
     }
     .prose ol {
-        counter-reset: ol;
-    }
-    .prose ol > li {
-        counter-increment: ol;
-    }
-    .prose ol > li::before {
-        content: counter(ol) ".";
-        position: absolute;
-        left: 0;
-        font-family: var(--font-mono);
-        color: var(--muted);
-        opacity: 0.7;
+        list-style: decimal;
     }
     .prose li + li {
-        margin-top: 0.35em;
+        margin-top: 0.3em;
     }
     .prose blockquote {
-        border-left: 1px solid var(--rule);
+        border-left: 2px solid var(--rule);
         padding-left: 1em;
         color: var(--muted);
-        font-style: normal;
-        margin: 0;
+        font-style: italic;
     }
     .prose hr {
         border: 0;
         border-top: 1px solid var(--rule);
-        margin: 2.4em 0;
+        margin: 2em 0;
     }
     .prose img {
         max-width: 100%;
         height: auto;
         border: 1px solid var(--rule);
-        border-radius: 3px;
+        border-radius: 4px;
     }
 </style>
