@@ -1,0 +1,135 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+    const posts = await getCollection("writeups", ({ data }) => !data.draft);
+    return posts.map((post) => ({
+        params: { slug: post.id },
+        props: { post },
+    }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const fmt = (d: Date) => d.toISOString().slice(0, 10);
+---
+
+<Layout title={`${post.data.title} — Vasco Smith`} description={post.data.summary}>
+    <main class="mx-auto px-6 py-24" style="max-width: var(--measure);">
+        <nav
+            class="font-mono text-muted"
+            style="font-size: var(--step--1);"
+            aria-label="breadcrumb"
+        >
+            <a href="/" class="nav-link text-fg hover:text-accent">index</a>
+            <span class="mx-2 opacity-60">/</span>
+            <a href="/writeups" class="nav-link text-fg hover:text-accent"
+                >writeups</a
+            >
+        </nav>
+
+        <header class="mt-6">
+            <h1
+                class="font-mono font-medium"
+                style="font-size: var(--step-2); letter-spacing: -0.02em;"
+            >
+                {post.data.title}
+            </h1>
+            <p
+                class="font-mono text-muted mt-3"
+                style="font-size: var(--step--1);"
+            >
+                {fmt(post.data.date)}
+                {
+                    post.data.tags.length > 0 && (
+                        <>
+                            <span class="mx-2 opacity-60">·</span>
+                            {post.data.tags.join(" / ")}
+                        </>
+                    )
+                }
+            </p>
+        </header>
+
+        <article class="prose mt-10">
+            <Content />
+        </article>
+    </main>
+</Layout>
+
+<style is:global>
+    .prose {
+        font-size: var(--step-0);
+        line-height: 1.7;
+        max-width: 70ch;
+    }
+    .prose > * + * {
+        margin-top: 1.1em;
+    }
+    .prose h2 {
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-size: var(--step-1);
+        letter-spacing: -0.01em;
+        margin-top: 2em;
+    }
+    .prose h3 {
+        font-family: var(--font-mono);
+        font-weight: 500;
+        font-size: var(--step-0);
+        margin-top: 1.6em;
+    }
+    .prose code {
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        background: color-mix(in oklab, var(--rule) 60%, transparent);
+        padding: 0.1em 0.35em;
+        border-radius: 3px;
+    }
+    .prose pre {
+        font-family: var(--font-mono);
+        font-size: var(--step--1);
+        padding: 1em 1.1em;
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        overflow-x: auto;
+        line-height: 1.55;
+    }
+    .prose pre code {
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        font-size: inherit;
+    }
+    .prose ul,
+    .prose ol {
+        padding-left: 1.4em;
+    }
+    .prose ul {
+        list-style: disc;
+    }
+    .prose ol {
+        list-style: decimal;
+    }
+    .prose li + li {
+        margin-top: 0.3em;
+    }
+    .prose blockquote {
+        border-left: 2px solid var(--rule);
+        padding-left: 1em;
+        color: var(--muted);
+        font-style: italic;
+    }
+    .prose hr {
+        border: 0;
+        border-top: 1px solid var(--rule);
+        margin: 2em 0;
+    }
+    .prose img {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+    }
+</style>

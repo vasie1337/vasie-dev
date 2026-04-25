@@ -1,0 +1,88 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("writeups", ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const fmt = (d: Date) =>
+    d.toISOString().slice(0, 10);
+---
+
+<Layout title="writeups — Vasco Smith" description="notes, experiments, reading">
+    <main class="mx-auto px-6 py-24" style="max-width: var(--measure);">
+        <nav
+            class="font-mono text-muted"
+            style="font-size: var(--step--1);"
+            aria-label="breadcrumb"
+        >
+            <a href="/" class="nav-link text-fg hover:text-accent">index</a>
+            <span class="mx-2 opacity-60">/</span>
+            <span>writeups</span>
+        </nav>
+
+        <h1
+            class="font-mono font-medium mt-6"
+            style="font-size: var(--step-1); letter-spacing: -0.02em;"
+        >
+            writeups
+        </h1>
+        <p
+            class="mt-3 text-muted"
+            style="font-size: var(--step--1); max-width: 70ch;"
+        >
+            notes from systems experiments, reading, and side quests.
+        </p>
+
+        <ul class="mt-10 flex flex-col gap-8">
+            {
+                posts.map((p) => (
+                    <li class="group">
+                        <div class="flex items-baseline gap-3 flex-wrap">
+                            <a
+                                href={`/writeups/${p.id}`}
+                                class="font-mono font-medium no-underline group-hover:text-accent"
+                                style="font-size: var(--step-0);"
+                            >
+                                {p.data.title}
+                            </a>
+                            <span
+                                class="font-mono text-muted"
+                                style="font-size: var(--step--1);"
+                            >
+                                {fmt(p.data.date)}
+                            </span>
+                        </div>
+                        <p
+                            class="mt-1.5 text-muted"
+                            style="font-size: var(--step--1);"
+                        >
+                            {p.data.summary}
+                        </p>
+                        {p.data.tags.length > 0 && (
+                            <div
+                                class="font-mono text-muted mt-2 flex gap-4 flex-wrap"
+                                style="font-size: var(--step--1);"
+                            >
+                                {p.data.tags.map((t) => (
+                                    <span>{t}</span>
+                                ))}
+                            </div>
+                        )}
+                    </li>
+                ))
+            }
+            {
+                posts.length === 0 && (
+                    <li
+                        class="font-mono text-muted"
+                        style="font-size: var(--step--1);"
+                    >
+                        nothing here yet.
+                    </li>
+                )
+            }
+        </ul>
+    </main>
+</Layout>
